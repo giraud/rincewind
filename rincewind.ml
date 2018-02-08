@@ -12,7 +12,18 @@ let default_to_none = default_to "none"
 
 let join_array separator items = Array.fold_left (fun acc item -> acc ^ item ^ separator) "" items
 
-let join_list separator items = List.fold_left (fun acc item -> acc ^ item ^ separator) "" items
+let rec join_list separator items =
+  match items with
+    | [] -> ""
+    | hd :: [] -> hd
+    | hd :: tl -> hd ^ separator ^ (join_list separator tl)
+
+let foption f o =
+  match o with
+  | None -> None
+  | Some x -> f x
+
+(* Ident.t => t = { stamp: int; name: string; mutable flags: int } *)
 
 (* lexing.ml
 type position = {
@@ -20,14 +31,56 @@ type position = {
   pos_lnum : int;  line number
   pos_bol : int;   beginnig of line
   pos_cnum : int;  column number
-}
-*)
+}*)
 let position_to_string pos = (string_of_int pos.pos_lnum) ^ ":" ^ (string_of_int (pos.pos_cnum - pos.pos_bol + 1))
 
 (* location.ml
 Location.t = { loc_start: position; loc_end: position; loc_ghost: bool }
 *)
 let location_to_string {loc_start; loc_end; loc_ghost} = "[" ^  (position_to_string loc_start) ^ "," ^ (position_to_string loc_end) ^ "]"
+
+let print_type_scheme env typ =
+  Printtyp.wrap_printing_env env (fun () -> Format.asprintf "%a" Printtyp.type_scheme typ)
+
+(*
+type pattern = {
+    pat_desc: pattern_desc;
+    pat_loc: Location.t;
+    pat_extra : (pat_extra * Location.t * attribute list) list;
+    pat_type: type_expr;
+    mutable pat_env: Env.t;
+    pat_attributes: attribute list;
+}
+and pattern_desc =
+    Tpat_any
+  | Tpat_var of Ident.t * string loc
+  | Tpat_alias of pattern * Ident.t * string loc
+  | Tpat_constant of constant
+  | Tpat_tuple of pattern list
+  | Tpat_construct of
+      Longident.t loc * constructor_description * pattern list
+  | Tpat_variant of label * pattern option * row_desc ref
+  | Tpat_record of
+      (Longident.t loc * label_description * pattern) list *
+        closed_flag
+  | Tpat_array of pattern list
+  | Tpat_or of pattern * pattern * row_desc option
+  | Tpat_lazy of pattern
+*)
+let read_pattern {pat_loc; pat_env; pat_type; pat_desc; _} =
+  match pat_desc with
+    | Tpat_var (ident, s) -> ident.name ^ ":" ^ print_type_scheme pat_env pat_type
+    | _ -> ""
+
+(* typedtree.ml
+value_binding = {
+    vb_pat: pattern;
+    vb_expr: expression;
+    vb_attributes: attributes;
+    vb_loc: Location.t;
+}*)
+let read_value_binding {vb_pat; vb_expr; vb_attributes; vb_loc} =
+    read_pattern vb_pat
 
 (* typedtree.ml
 structure_item_desc =
@@ -54,7 +107,15 @@ structure_item = {
     str_env  : Env.t
 } *)
 let read_structure_item {str_desc; str_loc; str_env } =
-  (location_to_string str_loc) ^ "item:" ^ "xxx"
+  let item = match str_desc with
+    | Tstr_value (Recursive, vb) -> "r value"
+    | Tstr_value (Nonrecursive, vb) -> join_list ";" (List.map read_value_binding vb)
+    | Tstr_module m -> "module"
+    | Tstr_recmodule rm -> "rec module"
+    | Tstr_class c -> "class"
+    | Tstr_include i -> "include"
+    | _ -> "other" in
+  (location_to_string str_loc) ^ item
 
 (* typedtree.ml
 structure = {
