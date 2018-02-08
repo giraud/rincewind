@@ -5,10 +5,11 @@ open Lexing
 
 let default_to defaultValue value =
   match value with
-    | Some f -> f
+    | Some v -> v
     | None -> defaultValue
 
 let default_to_none = default_to "none"
+let default_to_empty = default_to ""
 
 let join_array separator items = Array.fold_left (fun acc item -> acc ^ item ^ separator) "" items
 
@@ -39,7 +40,7 @@ Location.t = { loc_start: position; loc_end: position; loc_ghost: bool }
 *)
 let location_to_string {loc_start; loc_end; loc_ghost} = "[" ^  (position_to_string loc_start) ^ "," ^ (position_to_string loc_end) ^ "]"
 
-let print_type_scheme env typ =
+let read_type env typ =
   Printtyp.wrap_printing_env env (fun () -> Format.asprintf "%a" Printtyp.type_scheme typ)
 
 (*
@@ -69,8 +70,8 @@ and pattern_desc =
 *)
 let read_pattern {pat_loc; pat_env; pat_type; pat_desc; _} =
   match pat_desc with
-    | Tpat_var (ident, s) -> ident.name ^ ":" ^ print_type_scheme pat_env pat_type
-    | _ -> ""
+    | Tpat_var (ident, s) -> Some (ident.name ^ ":" ^ (read_type pat_env pat_type))
+    | _ -> None
 
 (* typedtree.ml
 value_binding = {
@@ -108,13 +109,9 @@ structure_item = {
 } *)
 let read_structure_item {str_desc; str_loc; str_env } =
   let item = match str_desc with
-    | Tstr_value (Recursive, vb) -> "r value"
-    | Tstr_value (Nonrecursive, vb) -> join_list ";" (List.map read_value_binding vb)
-    | Tstr_module m -> "module"
-    | Tstr_recmodule rm -> "rec module"
-    | Tstr_class c -> "class"
-    | Tstr_include i -> "include"
-    | _ -> "other" in
+    | Tstr_value (Nonrecursive, vb) -> join_list ";" (List.map (fun item -> default_to_empty (read_value_binding item)) vb)
+    | Tstr_module mb -> "module"
+    | _ -> "" in
   (location_to_string str_loc) ^ item
 
 (* typedtree.ml
@@ -137,11 +134,12 @@ binary_annots =
 *)
 let read_cmt_annots annots =
   match annots with
-    | Packed (x, y) -> ["packed"]
+    (*| Packed (x, y) -> ["packed"]*)
     | Implementation typedTree -> read_structure typedTree
-    | Interface x -> ["interface"]
-    | Partial_implementation x -> ["partial impl"]
-    | Partial_interface x -> ["partial int"]
+    (*| Interface x -> ["interface"]*)
+    (*| Partial_implementation x -> ["partial impl"]*)
+    (*| Partial_interface x -> ["partial int"]*)
+    | _ -> [""]
 
 (*
 type cmt_infos = {
