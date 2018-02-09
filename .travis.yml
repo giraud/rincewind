@@ -3,6 +3,6 @@ sudo: required
 before_install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-ocaml.sh
 install: bash -ex .travis-ocaml.sh
 env:
-  - OCAML_VERSION=4.02
+  - OCAML_VERSION=4.02 OPAM_SWITCH=4.02.3+buckle-master
 script:
   - ./build.sh
