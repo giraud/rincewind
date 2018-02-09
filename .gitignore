@@ -1,2 +1,5 @@
+*.o
+*.cmi
+*.cmx
 *.iml
 .idea/
