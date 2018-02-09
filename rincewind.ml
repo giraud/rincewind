@@ -26,7 +26,7 @@ let foption f o =
 
 let position_to_string pos = (string_of_int pos.pos_lnum) ^ ":" ^ (string_of_int (pos.pos_cnum - pos.pos_bol + 1))
 
-let location_to_string {loc_start; loc_end; loc_ghost} = "[" ^  (position_to_string loc_start) ^ "," ^ (position_to_string loc_end) ^ "]"
+let location_to_string {loc_start; loc_end; loc_ghost} = "[" ^  (position_to_string loc_start) (*^ "," ^ (position_to_string loc_end)*) ^ "]"
 
 let read_type env typ =
   Printtyp.wrap_printing_env env (fun () -> Format.asprintf "%a" Printtyp.type_scheme typ)
@@ -36,8 +36,32 @@ let read_pattern {pat_loc; pat_env; pat_type; pat_desc; _} =
     | Tpat_var (ident, s) -> Some (ident.name ^ ":" ^ (read_type pat_env pat_type))
     | _ -> None
 
-let read_value_binding {vb_pat; vb_expr; vb_attributes; vb_loc} =
-    read_pattern vb_pat
+let rec read_expression_desc exp_loc exp_desc =
+  match exp_desc with
+    | Texp_let (_, vbl, e) ->
+            let let_loc = (location_to_string exp_loc) in
+            let let_binding = List.map (fun item -> default_to_empty (read_value_binding item)) vbl in
+            let next_expr = read_expressions e in
+            Some (let_loc ^ (join_list "__EXP_LET__" let_binding) ^ "\n" ^ (default_to_empty next_expr))
+    | Texp_function (_, cases, _) -> Some (join_list "__EXP_FUN__" (List.map (fun item -> read_case item) cases))
+    | _ -> None
+
+and read_case {c_rhs} =
+  match read_expression_desc c_rhs.exp_loc c_rhs.exp_desc with
+    | Some x -> x
+    | _ -> ""
+
+and read_expressions {exp_loc; exp_desc; _} =
+  read_expression_desc exp_loc exp_desc
+
+and read_value_binding {vb_pat; vb_expr; vb_attributes; vb_loc} =
+    let pattern = read_pattern vb_pat in
+    let expressions = read_expressions vb_expr in
+    match pattern with
+      | None -> None
+      | Some p -> match expressions with
+                   | None -> pattern
+                   | Some e -> Some (p ^ "\n" ^ e)
 
 let read_module_binding {mb_expr; _} =
   match mb_expr.mod_desc with

@@ -36,6 +36,64 @@ type pattern_desc =
   | Tpat_or of pattern * pattern * row_desc option
   | Tpat_lazy of pattern
 
+case = {
+  c_lhs: pattern;
+  c_guard: expression option;
+  c_rhs: expression;
+}
+
+expression =
+  { exp_desc: expression_desc;
+    exp_loc: Location.t;
+    exp_extra: (exp_extra * Location.t * attribute list) list;
+    exp_type: type_expr;
+    exp_env: Env.t;
+    exp_attributes: attribute list;
+   }
+
+exp_extra =
+  | Texp_constraint of core_type
+  | Texp_coerce of core_type option * core_type
+  | Texp_open of override_flag * Path.t * Longident.t loc * Env.t
+  | Texp_poly of core_type option
+  | Texp_newtype of string
+
+expression_desc =
+    Texp_ident of Path.t * Longident.t loc * Types.value_description
+  | Texp_constant of constant
+  | Texp_let of rec_flag * value_binding list * expression
+  | Texp_function of label * case list * partial
+  | Texp_apply of expression * (label * expression option * optional) list
+  | Texp_match of expression * case list * case list * partial
+  | Texp_try of expression * case list
+  | Texp_tuple of expression list
+  | Texp_construct of
+      Longident.t loc * constructor_description * expression list
+  | Texp_variant of label * expression option
+  | Texp_record of
+      (Longident.t loc * label_description * expression) list *
+        expression option
+  | Texp_field of expression * Longident.t loc * label_description
+  | Texp_setfield of
+      expression * Longident.t loc * label_description * expression
+  | Texp_array of expression list
+  | Texp_ifthenelse of expression * expression * expression option
+  | Texp_sequence of expression * expression
+  | Texp_while of expression * expression
+  | Texp_for of
+      Ident.t * Parsetree.pattern * expression * expression * direction_flag *
+        expression
+  | Texp_send of expression * meth * expression option
+  | Texp_new of Path.t * Longident.t loc * Types.class_declaration
+  | Texp_instvar of Path.t * Path.t * string loc
+  | Texp_setinstvar of Path.t * Path.t * string loc * expression
+  | Texp_override of Path.t * (Path.t * string loc * expression) list
+  | Texp_letmodule of Ident.t * string loc * module_expr * expression
+  | Texp_assert of expression
+  | Texp_lazy of expression
+  | Texp_object of class_structure * string list
+  | Texp_pack of module_expr
+
 typedtree.ml
 value_binding = {
     vb_pat: pattern;
