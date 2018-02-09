@@ -4,5 +4,5 @@ script: bash -ex .travis-ocaml.sh
 env:
   - OCAML_VERSION=4.02
 
-before_script:
+script:
   - ./build.sh
