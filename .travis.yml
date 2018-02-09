@@ -1,7 +1,7 @@
-language: c
-sudo: required
-before_install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-ocaml.sh
-install: bash -ex .travis-ocaml.sh
+language: generic
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y ocaml
 env:
   - OCAML_VERSION=4.02
 script:
