@@ -24,140 +24,44 @@ let foption f o =
   | None -> None
   | Some x -> f x
 
-(* Ident.t => t = { stamp: int; name: string; mutable flags: int } *)
-
-(* lexing.ml
-type position = {
-  pos_fname : string;
-  pos_lnum : int;  line number
-  pos_bol : int;   beginnig of line
-  pos_cnum : int;  column number
-}*)
 let position_to_string pos = (string_of_int pos.pos_lnum) ^ ":" ^ (string_of_int (pos.pos_cnum - pos.pos_bol + 1))
 
-(* location.ml
-Location.t = { loc_start: position; loc_end: position; loc_ghost: bool }
-*)
 let location_to_string {loc_start; loc_end; loc_ghost} = "[" ^  (position_to_string loc_start) ^ "," ^ (position_to_string loc_end) ^ "]"
 
 let read_type env typ =
   Printtyp.wrap_printing_env env (fun () -> Format.asprintf "%a" Printtyp.type_scheme typ)
 
-(*
-type pattern = {
-    pat_desc: pattern_desc;
-    pat_loc: Location.t;
-    pat_extra : (pat_extra * Location.t * attribute list) list;
-    pat_type: type_expr;
-    mutable pat_env: Env.t;
-    pat_attributes: attribute list;
-}
-and pattern_desc =
-    Tpat_any
-  | Tpat_var of Ident.t * string loc
-  | Tpat_alias of pattern * Ident.t * string loc
-  | Tpat_constant of constant
-  | Tpat_tuple of pattern list
-  | Tpat_construct of
-      Longident.t loc * constructor_description * pattern list
-  | Tpat_variant of label * pattern option * row_desc ref
-  | Tpat_record of
-      (Longident.t loc * label_description * pattern) list *
-        closed_flag
-  | Tpat_array of pattern list
-  | Tpat_or of pattern * pattern * row_desc option
-  | Tpat_lazy of pattern
-*)
 let read_pattern {pat_loc; pat_env; pat_type; pat_desc; _} =
   match pat_desc with
     | Tpat_var (ident, s) -> Some (ident.name ^ ":" ^ (read_type pat_env pat_type))
     | _ -> None
 
-(* typedtree.ml
-value_binding = {
-    vb_pat: pattern;
-    vb_expr: expression;
-    vb_attributes: attributes;
-    vb_loc: Location.t;
-}*)
 let read_value_binding {vb_pat; vb_expr; vb_attributes; vb_loc} =
     read_pattern vb_pat
 
-(* typedtree.ml
-structure_item_desc =
-    Tstr_eval of expression * attributes
-  | Tstr_value of rec_flag * value_binding list
-  | Tstr_primitive of value_description
-  | Tstr_type of type_declaration list
-  | Tstr_typext of type_extension
-  | Tstr_exception of extension_constructor
-  | Tstr_module of module_binding
-  | Tstr_recmodule of module_binding list
-  | Tstr_modtype of module_type_declaration
-  | Tstr_open of open_description
-  | Tstr_class of (class_declaration * string list * virtual_flag) list
-  | Tstr_class_type of (Ident.t * string loc * class_type_declaration) list
-  | Tstr_include of include_declaration
-  | Tstr_attribute of attribute
-*)
+let read_module_binding {mb_expr; _} =
+  match mb_expr.mod_desc with
+    | Tmod_structure s -> Some s
+    | _ -> None
 
-(* typedtree.ml
-structure_item = {
-    str_desc : structure_item_desc;
-    str_loc  : Location.t;
-    str_env  : Env.t
-} *)
-let read_structure_item {str_desc; str_loc; str_env } =
-  let item = match str_desc with
-    | Tstr_value (Nonrecursive, vb) -> join_list ";" (List.map (fun item -> default_to_empty (read_value_binding item)) vb)
-    | Tstr_module mb -> "module"
-    | _ -> "" in
-  (location_to_string str_loc) ^ item
+let rec read_structure_item {str_desc; str_loc; str_env } =
+  match str_desc with
+    | Tstr_value (_, vb) -> (location_to_string str_loc) ^ (join_list ";" (List.map (fun item -> default_to_empty (read_value_binding item)) vb))
+    | Tstr_module mb ->
+        let x = match read_module_binding mb with
+          | None -> ""
+          | Some mbs -> join_list "\n" (List.map (fun item -> (read_structure_item item)) mbs.str_items) in
+        x
+    | _ -> ""
 
-(* typedtree.ml
-structure = {
-  str_items : structure_item list;
-  str_type : Types.signature;
-  str_final_env : Env.t;
-}
-*)
 let read_structure {str_items; str_type; str_final_env} =
   List.map (fun item -> (read_structure_item item)) str_items
 
-(*
-binary_annots =
-  | Packed of Types.signature * string list
-  | Implementation of structure
-  | Interface of signature
-  | Partial_implementation of binary_part array
-  | Partial_interface of binary_part array
-*)
 let read_cmt_annots annots =
   match annots with
-    (*| Packed (x, y) -> ["packed"]*)
     | Implementation typedTree -> read_structure typedTree
-    (*| Interface x -> ["interface"]*)
-    (*| Partial_implementation x -> ["partial impl"]*)
-    (*| Partial_interface x -> ["partial int"]*)
     | _ -> [""]
 
-(*
-type cmt_infos = {
-  cmt_modname            : string;
-  cmt_annots             : binary_annots;
-  cmt_value_dependencies : (Types.value_description * Types.value_description) list;
-  cmt_comments           : (string * Location.t) list;
-  cmt_args               : string array;
-  cmt_sourcefile         : string option;
-  cmt_builddir           : string;
-  cmt_loadpath           : string list;
-  cmt_source_digest      : Digest.t option;
-  cmt_initial_env        : Env.t;
-  cmt_imports            : (string * Digest.t option) list;
-  cmt_interface_digest   : Digest.t option;
-  cmt_use_summaries      : bool;
-}
-*)
 let print_cmt_info filename =
     let info = Cmt_format.read_cmt filename in
     Printf.printf "modname:%s\n" info.cmt_modname;
