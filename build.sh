@@ -1,4 +1,6 @@
 #!/bin/bash
-ls /usr/local
+ls ~
+PATH=~/ocaml/bin:$PATH
+
 rm -f *.cm* *.exe *.o
-/usr/local/ocamlopt -I +compiler-libs -o rincewind.exe ocamlcommon.cmxa str.cmxa rincewind.ml
+ocamlopt -I +compiler-libs -o rincewind.exe ocamlcommon.cmxa str.cmxa rincewind.ml
