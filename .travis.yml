@@ -5,4 +5,4 @@ env:
   - OCAML_VERSION=4.02
 
 script:
-  - ./build.sh
+  - build.sh
