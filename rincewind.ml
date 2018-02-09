@@ -11,8 +11,9 @@ let default_to defaultValue value =
 let default_to_none = default_to "none"
 let default_to_empty = default_to ""
 
+let r = Str.regexp "\n"
+
 let clean_type str =
-  let r = Str.regexp "\n" in
   Str.global_replace r "" str
 
 let join_array separator items =
