@@ -82,12 +82,11 @@ let rec read_structure_item qname {str_desc; str_loc; str_env } =
   match str_desc with
     | Tstr_value (_, vb) -> (location_to_string qname str_loc) ^ (join_list ";" (List.map (fun item -> default_to_empty (read_value_binding qname item)) vb))
     | Tstr_module mb ->
-        let x = match read_module_binding mb with
+        (match read_module_binding mb with
           | None -> ""
           | Some mbs ->
               let qname = qname_add qname mb.mb_id.name in
-              join_list "\n" (List.map (fun item -> (read_structure_item qname item)) mbs.str_items) in
-        x
+              join_list "\n" (List.map (fun item -> (read_structure_item qname item)) mbs.str_items))
     | _ -> ""
 
 let read_structure {str_items; str_type; str_final_env} =
@@ -100,12 +99,12 @@ let read_cmt_annots annots =
 
 let print_cmt_info filename =
     let info = Cmt_format.read_cmt filename in
-    Printf.printf "modname:%s\n" info.cmt_modname;
-    Printf.printf "args:%s\n" (join_array " " info.cmt_args);
-    Printf.printf "sourcefile:%s\n" (default_to_none info.cmt_sourcefile);
-    Printf.printf "builddir:%s\n" info.cmt_builddir;
-    Printf.printf "loadpath:%s\n" (join_list "," info.cmt_loadpath);
-    Printf.printf "use_summaries:%b\n" info.cmt_use_summaries;
+    (*Printf.printf "modname:%s\n" info.cmt_modname;*)
+    (*Printf.printf "args:%s\n" (join_array " " info.cmt_args);*)
+    (*Printf.printf "sourcefile:%s\n" (default_to_none info.cmt_sourcefile);*)
+    (*Printf.printf "builddir:%s\n" info.cmt_builddir;*)
+    (*Printf.printf "loadpath:%s\n" (join_list "," info.cmt_loadpath);*)
+    (*Printf.printf "use_summaries:%b\n" info.cmt_use_summaries;*)
     Printf.printf "%s" (join_list "\n" (read_cmt_annots info.cmt_annots));
 
 module Driver = struct
