@@ -11,7 +11,12 @@ let default_to defaultValue value =
 let default_to_none = default_to "none"
 let default_to_empty = default_to ""
 
-let join_array separator items = Array.fold_left (fun acc item -> acc ^ item ^ separator) "" items
+let clean_type str =
+  let r = Str.regexp "\n" in
+  Str.global_replace r "" str
+
+let join_array separator items =
+  Array.fold_left (fun acc item -> acc ^ item ^ separator) "" items
 
 let rec join_list separator items =
   match items with
@@ -19,17 +24,14 @@ let rec join_list separator items =
     | hd :: [] -> hd
     | hd :: tl -> hd ^ separator ^ (join_list separator tl)
 
-let foption f o =
-  match o with
-  | None -> None
-  | Some x -> f x
+let position_to_string pos =
+  (string_of_int pos.pos_lnum) ^ ":" ^ (string_of_int (pos.pos_cnum - pos.pos_bol + 1))
 
-let position_to_string pos = (string_of_int pos.pos_lnum) ^ ":" ^ (string_of_int (pos.pos_cnum - pos.pos_bol + 1))
-
-let location_to_string {loc_start; loc_end; loc_ghost} = "[" ^  (position_to_string loc_start) (*^ "," ^ (position_to_string loc_end)*) ^ "]"
+let location_to_string {loc_start; loc_end; loc_ghost} =
+  "[" ^  (position_to_string loc_start) (*^ "," ^ (position_to_string loc_end)*) ^ "]"
 
 let read_type env typ =
-  Printtyp.wrap_printing_env env (fun () -> Format.asprintf "%a" Printtyp.type_scheme typ)
+  clean_type (Format.asprintf "%a" Printtyp.type_scheme typ)
 
 let read_pattern {pat_loc; pat_env; pat_type; pat_desc; _} =
   match pat_desc with
