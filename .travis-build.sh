@@ -1,3 +1,3 @@
 #!/bin/bash
-./.travis-ocaml.sh
+sudo ./.travis-ocaml.sh
 ./build.sh
