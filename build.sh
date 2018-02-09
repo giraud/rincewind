@@ -1,5 +1,5 @@
 #!/bin/bash
-ls ~
+ls ~/bin
 PATH=~/ocaml/bin:$PATH
 
 rm -f *.cm* *.exe *.o
