@@ -1,3 +1,3 @@
 #!/bin/bash
-eval `opam config env`
+./.travis-ocaml.sh
 ./build.sh
