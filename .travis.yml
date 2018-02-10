@@ -4,5 +4,10 @@ before_install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/ma
 install: bash -ex .travis-ocaml.sh
 env:
   - OCAML_VERSION=4.02 OPAM_SWITCH=4.02.3+buckle-master
-script:
-  - ./build.sh
+script: ./build.sh
+deploy:
+  provider: bintray
+  file: bintray.json
+  user: giraud
+  key: AAAA
+  dry-run: true
