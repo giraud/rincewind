@@ -2,11 +2,11 @@
   "package": {
     "name": "rincewind",
     "repo": "maven",
-    "subject": "giraud", // Bintray subject (user or organization)
+    "subject": "giraud",
     "desc": "Automatic publishing",
     "licenses": ["MIT"],
     "public_download_numbers": true,
-    "public_stats": true,
+    "public_stats": true
   },
   "version": {
     "name": "0.1",
