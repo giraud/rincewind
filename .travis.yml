@@ -7,7 +7,7 @@ env:
 script: ./build.sh
 deploy:
   provider: bintray
-  file: bintray.json
+  file: descriptor.json
   user: giraud
   key: AAAA
   dry-run: true
