@@ -12,6 +12,6 @@
     "name": "0.1",
     "gpgSign": false
   },
-  "files": [{"includePattern": "./(rincewind.exe)", "uploadPattern": "$1"}],
+  "files": [{"includePattern": "\./(rincewind.exe)", "uploadPattern": "$1"}],
   "publish": true
 }
