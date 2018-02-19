@@ -1,9 +1,9 @@
 {
   "package": {
     "name": "rincewind",
-    "repo": "maven",
+    "repo": "giraud",
     "subject": "giraud",
-    "desc": "Automatic publishing",
+    "vcs_url": "https://github.com/giraud/rincewind",
     "licenses": ["MIT"],
     "public_download_numbers": true,
     "public_stats": true
