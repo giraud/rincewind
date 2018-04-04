@@ -8,10 +8,12 @@
     "public_download_numbers": true,
     "public_stats": true
   },
+
   "version": {
     "name": "0.1",
     "gpgSign": false
   },
-  "files": [{"includePattern": "\./rincewind.exe"}],
+
+  "files": [{"includePattern": "\\./rincewind.exe", "uploadPattern": "rincewind.exe"}],
   "publish": true
 }
