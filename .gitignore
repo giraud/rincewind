@@ -3,3 +3,4 @@
 *.cmx
 *.iml
 .idea/
+build/
