@@ -1,12 +1,15 @@
 language: c
 sudo: required
-before_install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-ocaml.sh
+before_install:
+  - wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-ocaml.sh
 install:
   - bash -ex .travis-ocaml.sh
   - opam install jbuilder
 env:
   - OCAML_VERSION=4.02 OPAM_SWITCH=4.02.3+buckle-master
-script: jbuilder build rincewind.exe
+script:
+  - eval `${HOME}/opam config env`
+  - jbuilder build rincewind.exe
 deploy:
   provider: bintray
   file: descriptor.json
