@@ -7,7 +7,7 @@ install:
 env:
   - OCAML_VERSION=4.02 OPAM_SWITCH=4.02.3+buckle-master
 script:
-  - eval `${HOME}/opam config env` && opam install jbuilder && jbuilder build rincewind.exe
+  - eval `opam config env` && opam install jbuilder && jbuilder build rincewind.exe
 deploy:
   provider: bintray
   file: descriptor.json
