@@ -14,7 +14,7 @@ before_script:
 script:
   - eval `opam config env` && jbuilder build rincewind.exe
   - mkdir -p _build/final
-  - mv _build/default/rincewind.exe _build/final/rincewind-${OCAML_VERSION}-${TRAVIS_OS_NAME}.exe
+  - mv _build/default/rincewind.exe _build/final/rincewind-${TRAVIS_OS_NAME}-${OCAML_VERSION}-0.2.exe
 deploy:
   provider: bintray
   file: descriptor.json
