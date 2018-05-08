@@ -108,7 +108,7 @@ let print_cmt_info filename =
     Printf.printf "%s" (join_list "\n" (read_cmt_annots info.cmt_annots));
 
 module Driver = struct
-  let usage_msg = "Usage: rincewind.exe <filename>"
+  let usage_msg = "Usage: rincewind.exe <filename>\nrincewind-0.2"
 
   let main () =
     let args = ref [] in
