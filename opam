@@ -1,0 +1,18 @@
+opam-version: "1.2"
+name: "PKG"
+version: "0.2"
+maintainer: "giraud <giraud.contact@yahoo.fr>"
+authors: "giraud <giraud.contact@yahoo.fr>"
+license: "MIT"
+homepage: "https://github.com/reasonml-editor/reasonml-idea-plugin"
+dev-repo: "https://github.com/reasonml-editor/reasonml-idea-plugin"
+build: [
+  ["./configure" "--prefix=%{prefix}%"]
+  [make]
+]
+install: [make "install"]
+remove: ["ocamlfind" "remove" "PKG"]
+depends: [
+  "ocamlfind" {build}
+  "jbuilder"  {build}
+]
