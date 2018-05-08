@@ -12,7 +12,7 @@ env:
 before_script:
   - opam install jbuilder
 script:
-  - jbuilder build rincewind.exe
+  - eval `opam config env` && jbuilder build rincewind.exe
   - mkdir -p _build/final
   - mv _build/default/rincewind.exe _build/final/rincewind-${OCAML_VERSION}-${TRAVIS_OS_NAME}.exe
 deploy:
