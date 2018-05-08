@@ -8,5 +8,5 @@ bug-reports: "https://github.com/reasonml-editor/reasonml-idea-plugin"
 license: "MIT"
 dev-repo: "https://github.com/reasonml-editor/reasonml-idea-plugin"
 build: [
-  ["jbuilder" "build" "rincewind.exe"]
+  ["build.sh"]
 ]

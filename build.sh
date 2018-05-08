@@ -1,2 +1,2 @@
 #!/bin/bash
-jbuilder build rincewind.exe
+eval `opam config env` && jbuilder build rincewind.exe
