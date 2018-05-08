@@ -8,7 +8,7 @@ bug-reports: "https://github.com/reasonml-editor/reasonml-idea-plugin"
 license: "MIT"
 dev-repo: "https://github.com/reasonml-editor/reasonml-idea-plugin"
 build: [
-  [ "jbuilder" "build" name ]
+  [ "jbuilder" "build" "rincewind.exe" ]
 ]
 depends: [
   "jbuilder" {build & >= "1.0+beta14"}
