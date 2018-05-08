@@ -14,6 +14,6 @@
     "gpgSign": false
   },
 
-  "files": [{"includePattern": "_build/final/*.exe"}],
+  "files": [{"includePattern": "_build/final/(.*)", "uploadPattern": "$1"}],
   "publish": true
 }
