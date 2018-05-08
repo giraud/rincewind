@@ -8,5 +8,8 @@ bug-reports: "https://github.com/reasonml-editor/reasonml-idea-plugin"
 license: "MIT"
 dev-repo: "https://github.com/reasonml-editor/reasonml-idea-plugin"
 build: [
-  ["build.sh"]
+  [ "jbuilder" "build" name ]
+]
+depends: [
+  "jbuilder" {build & >= "1.0+beta14"}
 ]
