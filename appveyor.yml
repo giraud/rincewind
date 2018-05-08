@@ -13,3 +13,5 @@ install:
 
 build_script:
   - call %CYG_ROOT%\bin\bash.exe -l %APPVEYOR_BUILD_FOLDER%\appveyor-opam.sh
+  - mkdir -p _build/final
+  - mv _build/default/rincewind.exe _build/final/rincewind-win${OCAML_VERSION}-0.2.exe
