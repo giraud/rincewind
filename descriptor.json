@@ -14,6 +14,6 @@
     "gpgSign": false
   },
 
-  "files": [{"includePattern": "build/rincewind.exe", "uploadPattern": "rincewind-linux-0.1.exe"}],
+  "files": [{"includePattern": "_build/default/rincewind.exe", "uploadPattern": "rincewind-linux-4.02-0.1.exe"}],
   "publish": true
 }
