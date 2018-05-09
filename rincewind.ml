@@ -108,6 +108,17 @@ let print_cmt_info filename =
     Printf.printf "%s" (join_list "\n" (read_cmt_annots info.cmt_annots));
 
 module Driver = struct
+  let spec =
+    let open Command.Spec in
+      empty
+      +> anon ("filename" %: string)
+
+  let command =
+    Command.basic
+      ~summary: "Extract cmt information"
+      ~readme:  (fun () -> "rincewind.exe <filename>")
+      spec (fun filename () -> print_cmt_info filename)
+
   let usage_msg = "Usage: rincewind.exe <filename>\nv0.2"
 
   let main () =
