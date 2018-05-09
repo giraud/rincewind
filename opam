@@ -3,10 +3,10 @@ name: "rincewind"
 version: "0.2"
 maintainer: "giraud"
 authors: "giraud"
-homepage: "https://github.com/reasonml-editor/reasonml-idea-plugin"
-bug-reports: "https://github.com/reasonml-editor/reasonml-idea-plugin"
+homepage: "https://github.com/giraud/rincewind"
+bug-reports: "https://github.com/giraud/rincewind"
 license: "MIT"
-dev-repo: "https://github.com/reasonml-editor/reasonml-idea-plugin"
+dev-repo: "https://github.com/giraud/rincewind.git"
 build: [
   [ "jbuilder" "build" "rincewind.exe" ]
 ]
