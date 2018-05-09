@@ -23,7 +23,18 @@ build_script:
 after_build:
   - cmd: dir
   - cmd: mkdir _build\final
-  - cmd: copy _build\default\rincewind.exe _build\final\rincewind-windows-%OCAML_VERSION%-0.2.exe
+  - cmd: copy _build\default\rincewind.exe _build\final\rincewind-win%OCAML_VERSION%-0.2.exe
 
 artifacts:
   - path: _build\final\*.exe
+
+deploy:
+- provider: BinTray
+  username: giraud
+  api_key:
+    secure: itdLWIxgaezQg/X8pwrHpl+2dxRCZvvqkTaqYMv8j1vX59m+cGrdCVHLmoWdbAGILL8zopVlqGLeOpFmrY1idBkVQHZ6z67kwNisHoulIDYX3bsBg/lF7Eo9uCCZEG3hKtPPXDx/BWvcbPdm7PQNkH/wRTFBcs7mpegspI1bD/76BKlbEkKpK/VKdgd8EMlnaiNpFHWeCuSa5hURxbkaPxjxgwh6gKI7/4RxfRQ4wKGe3ZIjaSpoUBTWB4Bgcz6GcvlJvBEjsPnWRPbeFd8C+EosVBx61UiqkN9Qq7UxdTN/yBzV+60GXFwwGoyd84RbZReBG14/3tPZUZpAGZj+rArxi78rwy9OBLVpS/N77gRh5wO9hGXeqJ6n7Fs4Mh7dLuCpwguFBL2F6VuJYOLVKKn6R3l2QyIRtnGw5+hjxaqTBLjC1d/mr+9JpJKX5AJ33HWSnOqG383dtkHMweYqjB6WezDq3e0RSNSYEAhyXBzo3lw4TSnrGsA5AE4OeZCORZHLxTX+uMTZpcl2sjKZrBUytHcXlUU2UqgszBPsgEbrhALxcRQv2jUjHY0zC+6tcHSeaBsVrquuz5+FLd4nmSEQlsNDW0d2zsRn1dpeFJW8BLy6xPm9s1Uq+EbhNWwIVGspcDjETTinvl5AqioFvPtOjyT/LsGhMtRvyTKZIBo=
+  subject: giraud
+  repo: ocaml
+  package: rincewind
+  version: 0.2
+  publish: true
