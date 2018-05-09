@@ -5,6 +5,8 @@ environment:
   FORK_USER: ocaml
   FORK_BRANCH: master
   CYG_ROOT: C:\cygwin64
+  PACKAGE: "rincewind"
+  DEPOPTS: "jbuilder"
   matrix:
     - OPAM_SWITCH: 4.02.3+mingw64c
 
@@ -15,7 +17,7 @@ install:
   - ps: iex ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/$env:FORK_USER/ocaml-ci-scripts/$env:FORK_BRANCH/appveyor-install.ps1"))
 
 build_script:
-  - call %CYG_ROOT%\bin\bash.exe -l %APPVEYOR_BUILD_FOLDER%\appveyor-opam.sh
+  - call %CYG_ROOT%\bin\bash.exe -lc "eval `opam config env` && jbuilder build rincewind.exe"
 
 after_build:
   - cmd: dir
