@@ -13,4 +13,4 @@ install:
 
 build_script:
   - call %CYG_ROOT%\bin\bash.exe -l %APPVEYOR_BUILD_FOLDER%\appveyor-opam.sh
-  - call %CYG ROOT%\bin\bash.exe -l %APPVEYOR_BUILD_FOLDER%\appveyor-postscript.sh
+  - call %CYG ROOT%\bin\bash.exe -l appveyor-postscript.sh
