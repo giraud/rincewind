@@ -3,6 +3,12 @@ open Cmt_format
 open Location
 open Lexing
 
+type resolvedItem = {
+  qname: string;
+  location: Location.t;
+  old: string
+}
+
 let default_to defaultValue value =
   match value with
     | Some v -> v
@@ -18,6 +24,9 @@ let qname_add q v =
 
 let r = Str.regexp "\n"
 
+let deoptionalize (lst:'a option list) : 'a list =
+    List.map (fun x -> match x with Some x -> x | None -> assert false) (List.filter (fun x -> x <> None) lst)
+
 let clean_type str =
   Str.global_replace r "" str
 
@@ -31,9 +40,9 @@ let rec join_list separator items =
     | hd :: tl -> hd ^ separator ^ (join_list separator tl)
 
 let position_to_string pos =
-  (string_of_int pos.pos_lnum) ^ "|" ^ (string_of_int (pos.pos_cnum - pos.pos_bol + 1))
+  (string_of_int pos.pos_lnum) ^ "|" ^ (string_of_int (pos.pos_cnum - pos.pos_bol(*begining of line*) + 1))
 
-let location_to_string qname {loc_start; loc_end; loc_ghost} =
+let location_to_string {loc_start; loc_end; loc_ghost} =
   (position_to_string loc_start) (*^ "," ^ (position_to_string loc_end)*) ^ "|"
 
 let read_type env typ =
@@ -47,7 +56,7 @@ let read_pattern {pat_loc; pat_env; pat_type; pat_desc; _} =
 let rec read_expression_desc qname exp_loc exp_desc =
   match exp_desc with
     | Texp_let (_, vbl, e) ->
-        let let_loc = (location_to_string qname exp_loc) in
+        let let_loc = (location_to_string exp_loc) in
         let let_binding = List.map (fun item -> default_to_empty (read_value_binding qname item)) vbl in
         let next_expr = read_expression qname e in
         Some (let_loc ^ (join_list "__EXP_LET__" let_binding) ^ "\n" ^ (default_to_empty next_expr))
@@ -80,22 +89,23 @@ let read_module_binding {mb_expr; _} =
 
 let rec read_structure_item qname {str_desc; str_loc; str_env } =
   match str_desc with
-    | Tstr_value (_, vb) -> (location_to_string qname str_loc) ^ (join_list ";" (List.map (fun item -> default_to_empty (read_value_binding qname item)) vb))
+    | Tstr_value (_, vb) -> Some {qname=qname; location=str_loc; old=(join_list ";" (List.map (fun item -> default_to_empty (read_value_binding qname item)) vb)) }
     | Tstr_module mb ->
         (match read_module_binding mb with
-          | None -> ""
+          | None -> None
           | Some mbs ->
               let qname = qname_add qname mb.mb_id.name in
-              join_list "\n" (List.map (fun item -> (read_structure_item qname item)) mbs.str_items))
-    | _ -> ""
+              Some {qname=qname; location=str_loc; old = (join_list "\n" (List.map (fun item -> (match (read_structure_item qname item) with | None -> "__RSI__" | Some i -> i.old)) mbs.str_items)) })
+    | _ -> None
 
-let read_structure {str_items; str_type; str_final_env} =
+(* map all structure items to a transformed structure *)
+let read_structure {str_items(*structure_item list*); str_type(*Types.signature*); str_final_env(*Env.t*)} =
   List.map (fun item -> (read_structure_item "" item)) str_items
 
 let read_cmt_annots annots =
   match annots with
-    | Implementation typedTree -> read_structure typedTree
-    | _ -> [""]
+    | Implementation typedTree -> Some (read_structure typedTree)
+    | _ -> None
 
 let print_cmt_info filename =
     let info = Cmt_format.read_cmt filename in
@@ -105,21 +115,12 @@ let print_cmt_info filename =
     (*Printf.printf "builddir:%s\n" info.cmt_builddir;*)
     (*Printf.printf "loadpath:%s\n" (join_list "," info.cmt_loadpath);*)
     (*Printf.printf "use_summaries:%b\n" info.cmt_use_summaries;*)
-    Printf.printf "%s" (join_list "\n" (read_cmt_annots info.cmt_annots));
+    let annots = read_cmt_annots info.cmt_annots in
+    match annots with
+      | Some values -> Printf.printf "%s\n" (join_list "\n" (List.map (fun i -> i.qname ^ (location_to_string i.location) ^ i.old) (deoptionalize values)))
+      | None -> Printf.printf "\n";
 
 module Driver = struct
-(*
-  let spec =
-    let open Command.Spec in
-      empty
-      +> anon ("filename" %: string)
-
-  let command =
-    Command.basic
-      ~summary: "Extract cmt information"
-      ~readme:  (fun () -> "rincewind.exe <filename>")
-      spec (fun filename () -> print_cmt_info filename)
-*)
 
   let usage_msg = "Usage: rincewind.exe <filename>\nv0.2"
 
