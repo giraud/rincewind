@@ -22,5 +22,5 @@ after_build:
   - cmd: mkdir _build\final
   - cmd: copy _build\default\rincewind.exe _build\final\rincewind-windows-4.02-0.2.exe
 
-artifact:
-  - path: _build\final
+artifacts:
+  - path: _build\final\*.exe
