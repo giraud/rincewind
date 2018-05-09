@@ -102,23 +102,45 @@ let rec read_structure_item qname {str_desc; str_loc; str_env } =
 let read_structure {str_items(*structure_item list*); str_type(*Types.signature*); str_final_env(*Env.t*)} =
   List.map (fun item -> (read_structure_item "" item)) str_items
 
+(*
+binary_annots =
+  | Packed of Types.signature * string list
+  | Implementation of structure
+  | Interface of signature
+  | Partial_implementation of binary_part array
+  | Partial_interface of binary_part array
+*)
 let read_cmt_annots annots =
   match annots with
     | Implementation typedTree -> Some (read_structure typedTree)
     | _ -> None
 
-let print_cmt_info filename =
-    let info = Cmt_format.read_cmt filename in
+let print_cmt_info cmt =
     (*Printf.printf "modname:%s\n" info.cmt_modname;*)
     (*Printf.printf "args:%s\n" (join_array " " info.cmt_args);*)
     (*Printf.printf "sourcefile:%s\n" (default_to_none info.cmt_sourcefile);*)
     (*Printf.printf "builddir:%s\n" info.cmt_builddir;*)
     (*Printf.printf "loadpath:%s\n" (join_list "," info.cmt_loadpath);*)
     (*Printf.printf "use_summaries:%b\n" info.cmt_use_summaries;*)
-    let annots = read_cmt_annots info.cmt_annots in
+    let annots = read_cmt_annots cmt.cmt_annots in
     match annots with
       | Some values -> Printf.printf "%s\n" (join_list "\n" (List.map (fun i -> i.qname ^ (location_to_string i.location) ^ i.old) (deoptionalize values)))
       | None -> Printf.printf "\n";
+    ()
+
+(*
+.cmi	Compiled module interface from a corresponding .mli source file.
+.cmt	Typed abstract syntax tree for module implementations.
+.cmti	Typed abstract syntax tree for module interfaces.
+*)
+let print_info fname =
+    let cmio, cmto = Cmt_format.read fname in
+    match cmio, cmto with
+      | Some cmi, Some cmt -> print_cmt_info cmt
+      | None, Some cmt -> print_cmt_info cmt
+      | Some cmi, None -> Printf.printf "cmi\n"
+      | _ -> Printf.printf "can't read %s\n" fname;
+    ()
 
 module Driver = struct
 
@@ -128,7 +150,7 @@ module Driver = struct
     let args = ref [] in
     Arg.parse [] (fun s -> args := s :: !args) usage_msg;
     match !args with
-          | [fname] -> print_cmt_info fname
+          | [fname] -> print_info fname
           | _ -> failwith "Wrong number of arguments."
 
   let () =
