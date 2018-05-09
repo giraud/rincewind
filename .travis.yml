@@ -11,12 +11,14 @@ env:
   - OCAML_VERSION=4.02
   - OCAML_VERSION=4.03
   - OCAML_VERSION=4.04
+
 before_script:
   - opam install jbuilder
 script:
   - eval `opam config env` && jbuilder build rincewind.exe
   - mkdir -p _build/final
-  - mv _build/default/rincewind.exe _build/final/rincewind-${TRAVIS_OS_NAME}${OCAML_VERSION}-0.2.exe
+  - mv _build/default/rincewind.exe _build/final/rincewind_$(TRAVIS_OS_NAME | cut -c1)${OCAML_VERSION}-0.2.exe
+
 deploy:
   provider: bintray
   file: descriptor.json
