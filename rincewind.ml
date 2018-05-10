@@ -129,6 +129,7 @@ let print_cmt_info cmt =
     ()
 
 (*
+Print decoded file info on standard stream. File can be one of:
 .cmi	Compiled module interface from a corresponding .mli source file.
 .cmt	Typed abstract syntax tree for module implementations.
 .cmti	Typed abstract syntax tree for module interfaces.
@@ -136,28 +137,29 @@ let print_cmt_info cmt =
 let print_info fname =
     let cmio, cmto = Cmt_format.read fname in
     match cmio, cmto with
-      | Some cmi, Some cmt -> print_cmt_info cmt
-      | None, Some cmt -> print_cmt_info cmt
-      | Some cmi, None -> Printf.printf "cmi\n"
-      | _ -> Printf.printf "can't read %s\n" fname;
+        | Some cmi, Some cmt -> print_cmt_info cmt
+        | None, Some cmt -> print_cmt_info cmt
+        | Some cmi, None -> Printf.printf "cmi\n"
+        | _ -> Printf.eprintf "Can't read %s\n" fname;
     ()
 
 module Driver = struct
 
-  let usage_msg = "Usage: rincewind.exe <filename>\nv0.2"
+    let version = "0.2"
+    let usageMessage = "Usage: rincewind.exe <filename>\n" ^ version
 
-  let main () =
-    let args = ref [] in
-    Arg.parse [] (fun s -> args := s :: !args) usage_msg;
-    match !args with
-          | [fname] -> print_info fname
-          | _ -> failwith "Wrong number of arguments."
+    let main () =
+        let args = ref [] in
+        Arg.parse [] (fun s -> args := s :: !args) usageMessage;
+        match !args with
+            | [fname] -> print_info fname
+            | _ -> failwith "Wrong number of arguments."
 
-  let () =
-    try
-      main ()
-    with e ->
-      let s = match e with Failure s -> s | _ -> Printexc.to_string e in
-      Printf.eprintf "Failure: %s\n%!" s;
-      exit 1
+    let () =
+        try
+            main ()
+        with e ->
+            let s = match e with Failure s -> s | _ -> Printexc.to_string e in
+            Printf.eprintf "Failure: %s\n%!" s;
+            exit 1
 end
