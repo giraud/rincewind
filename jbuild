@@ -1,7 +1,7 @@
 (jbuild_version 1)
 
-(executable
- ((name rincewind)
-  (libraries (str compiler-libs.common))
-  (link_flags (-linkall))
-  ))
+(executable (
+    (name rincewind)
+    (libraries (str compiler-libs.common))
+    (modes (native))
+))
