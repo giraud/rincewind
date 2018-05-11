@@ -37,3 +37,5 @@ deploy:
   package: rincewind
   version: 0.2
   publish: true
+  on:
+    appveyor_repo_tag: true
