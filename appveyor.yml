@@ -2,6 +2,7 @@ platform:
   - x86
 
 environment:
+  RW_VERSION: 0.1
   FORK_USER: ocaml
   FORK_BRANCH: master
   CYG_ROOT: C:\cygwin64
@@ -22,7 +23,7 @@ build_script:
 
 after_build:
   - cmd: mkdir _build\final
-  - cmd: copy _build\default\rincewind.exe _build\final\rincewind_w%OCAML_VERSION%-0.2.exe
+  - cmd: copy _build\default\rincewind.exe _build\final\rincewind_w%OCAML_VERSION%-%RW_VERSION%.exe
 
 artifacts:
   - path: _build\final\*.exe
@@ -35,7 +36,7 @@ deploy:
   subject: giraud
   repo: ocaml
   package: rincewind
-  version: 0.2
+  version: ${rw_version}
   publish: true
   on:
     appveyor_repo_tag: true

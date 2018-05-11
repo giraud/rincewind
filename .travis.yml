@@ -6,9 +6,12 @@ os:
   - osx
 
 env:
-  - OCAML_VERSION=4.02
-  - OCAML_VERSION=4.03
-  - OCAML_VERSION=4.04
+  global:
+    - RW_VERSION=0.1
+  matrix:
+    - OCAML_VERSION=4.02
+    - OCAML_VERSION=4.03
+    - OCAML_VERSION=4.04
 
 before_install:
   - wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-ocaml.sh
@@ -20,7 +23,7 @@ before_script:
 script:
   - eval `opam config env` && jbuilder build rincewind.exe
   - mkdir -p _build/final
-  - mv _build/default/rincewind.exe _build/final/rincewind_$(echo $TRAVIS_OS_NAME | cut -c1)${OCAML_VERSION}-0.2.exe
+  - mv _build/default/rincewind.exe _build/final/rincewind_$(echo $TRAVIS_OS_NAME | cut -c1)${OCAML_VERSION}-${RW_VERSION}.exe
 
 deploy:
   provider: bintray
