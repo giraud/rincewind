@@ -129,6 +129,63 @@ let print_cmt_info cmt =
     ()
 
 (*
+type value_description =
+  { val_type: type_expr;                (* Type of the value *)
+    val_kind: value_kind;
+    val_loc: Location.t;
+    val_attributes: Parsetree.attributes;
+}
+*)
+type resolved_item = {
+    i_loc: Location.t;
+    i_name: string;
+    i_type: string;
+    i_comment: string;
+}
+
+let format_resolved_item {i_loc; i_name; i_type; i_comment} =
+    (location_to_string i_loc) ^ "|" ^ ""(*path*) ^ i_name ^ "|" ^ i_type ^ "|" ^ i_comment
+
+(*
+signature = signature_item list
+
+and signature_item =
+    Sig_value of Ident.t * value_description
+  | Sig_type of Ident.t * type_declaration * rec_status
+  | Sig_typext of Ident.t * extension_constructor * ext_status
+  | Sig_module of Ident.t * module_declaration * rec_status
+  | Sig_modtype of Ident.t * modtype_declaration
+  | Sig_class of Ident.t * class_declaration * rec_status
+  | Sig_class_type of Ident.t * class_type_declaration * rec_status
+*)
+let parse_cmi_sign signature =
+    match signature with
+        | Types.Sig_value (ident, desc) -> {i_loc=desc.val_loc; i_name=ident.name; i_type=(Format.asprintf "%a" Printtyp.type_scheme desc.val_type); i_comment=" => value"}
+        | Types.Sig_type (ident, decl, status) ->  {i_loc=decl.type_loc; i_name=ident.name; i_type=""; i_comment="| => type"}
+        | Types.Sig_typext (ident, constr, status) -> {i_loc=constr.ext_loc; i_name=ident.name; i_type=""; i_comment="=> typext"}
+        | Types.Sig_module (ident, decl, status) -> {i_loc=decl.md_loc; i_name=ident.name; i_type=""; i_comment="=> module"}
+        | Types.Sig_modtype (ident, decl) -> (
+
+            {i_loc=decl.mtd_loc; i_name=ident.name; i_type=""; i_comment="=> modtype"}
+        )
+        | Types.Sig_class (ident, decl, status) -> {i_loc=decl.cty_loc; i_name=ident.name; i_type=""; i_comment="=> class"}
+        | Types.Sig_class_type (ident, decl, status) -> {i_loc=decl.clty_loc; i_name=ident.name; i_type=""; i_comment="=> class_type"}
+
+
+(**
+type cmi_infos =
+    cmi_name : string; module nama
+    cmi_sign : Types.signature_item list;
+    cmi_crcs : (string * Digest.t option) list;
+    cmi_flags : pers_flags list;
+*)
+let parse_cmi cmi =
+    let {Cmi_format.cmi_name; cmi_sign; _} = cmi in
+    let resolved_items = List.map parse_cmi_sign cmi_sign in
+    List.map format_resolved_item resolved_items
+
+
+(*
 Print decoded file info on standard stream. File can be one of:
 .cmi	Compiled module interface from a corresponding .mli source file.
 .cmt	Typed abstract syntax tree for module implementations.
@@ -139,8 +196,11 @@ let print_info fname =
     match cmio, cmto with
         | Some cmi, Some cmt -> print_cmt_info cmt
         | None, Some cmt -> print_cmt_info cmt
-        | Some cmi, None -> Printf.printf "cmi\n"
-        | _ -> Printf.eprintf "Can't read %s\n" fname;
+        | Some cmi, None -> (
+            let entries = (parse_cmi cmi) in
+            Printf.printf "%s" (join_list "\n" entries)
+        )
+        | None, None -> Printf.eprintf "Can't read %s\n" fname;
     ()
 
 module Driver = struct
