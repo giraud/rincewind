@@ -25,11 +25,22 @@ type pattern_desc =
   | Tpat_or of pattern * pattern * row_desc option
   | Tpat_lazy of pattern
 *)
-let read_pattern {pat_loc; pat_env; pat_type; pat_desc; _} =
+let rec read_pattern_desc pat_desc =
   match pat_desc with
-    | Tpat_var (ident, s) -> (ident.name, (read_type pat_type))
-    | Tpat_constant (c) -> ("CC", "CCT")
-    | _ -> ("VV", "TT")
+    | Tpat_any -> "_Any_"
+    | Tpat_var (ident, s) -> ident.name
+    | Tpat_alias (pattern, ident, loc) -> ident.name
+    | Tpat_constant (c) -> "_Constant_"
+    | Tpat_tuple (patternl) -> join_list ", " (List.map (fun p -> read_pattern_desc p.pat_desc) patternl)
+    | Tpat_construct (loc, constr_desc, patternl) -> "_Constr_"
+    | Tpat_variant (label, pattern, row_desc) -> "_Variant_"
+    | Tpat_record (rl, flag) -> "_Record_"
+    | Tpat_array (patternl) -> "_Array_"
+    | Tpat_or (pattern, pattern', row_desc) -> "_Or_"
+    | Tpat_lazy (pattern) -> "_Lazy_"
+
+let read_pattern {pat_loc; pat_env; pat_type; pat_desc; _} =
+  ((read_pattern_desc pat_desc), (read_type pat_type))
 
 let rec read_expression_desc qname exp_loc exp_desc =
   match exp_desc with
