@@ -50,9 +50,7 @@ let rec read_expression_desc qname exp_loc exp_desc =
   match exp_desc with
     | Texp_ident (path, loc, val_desc) ->
         Single  {i_kind="_Ident_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=(read_type val_desc.val_type)}
-    | Texp_constant (constant) ->
-        (*Ignore;*)
-        Single  {i_kind="_Constant_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}
+    | Texp_constant (constant) -> Ignore
     | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
         Multiple (flat_resolved_items (List.map (parse_value_binding qname) vbl))
         (*let re = read_expression (qname ^ "EE") e in*)
@@ -105,8 +103,8 @@ let rec read_expression_desc qname exp_loc exp_desc =
   c_rhs: expression;
 } *)
 and read_case qname {c_lhs; c_guard; c_rhs} =
-  let (pat_name, pat_type) = read_pattern c_lhs in
-  Printf.printf "n:%s t:%s\n" pat_name pat_type;
+  (*let (pat_name, pat_type) = read_pattern c_lhs in*)
+  (*Printf.printf "n:%s t:%s\n" pat_name pat_type;*)
   read_expression_desc qname c_rhs.exp_loc c_rhs.exp_desc
 
 (* expression =
@@ -125,8 +123,8 @@ and parse_value_binding qname {vb_pat; vb_expr; vb_attributes; vb_loc} =
     let rootExpression = {i_kind="V"; i_loc=vb_loc; i_path=qname; i_name=pat_name; i_type=pat_type} in
     let expressions = read_expression (qname_add qname pat_name) vb_expr in
     match expressions with
-        | Ignore -> Ignore
-        | Single e -> Multiple (List.append [rootExpression] [e])
+        | Ignore -> Single rootExpression
+        | Single e -> Multiple [rootExpression; e]
         | Multiple e -> Multiple (List.append [rootExpression] e)
 
 let read_module_binding {mb_expr; _} =

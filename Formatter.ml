@@ -30,6 +30,6 @@ let format_resolved_item {RwTypes.i_kind; i_loc; i_path; i_name; i_type} =
     i_kind ^ "|" ^ (format_location i_loc) ^ i_path ^ "|" ^ i_name ^ "|" ^ (clean_type i_type)
 
 let to_string item = match item with
-                       | Ignore -> "Ignore"
+                       | Ignore -> ""
                        | Single i -> format_resolved_item i
                        | Multiple i -> join_list "\n" (List.map format_resolved_item i)
