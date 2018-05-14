@@ -1,5 +1,7 @@
 open Location
 open Lexing
+open RwTypes
+open Util
 
 let r = Str.regexp "\n"
 
@@ -24,5 +26,10 @@ let full_location_to_string {loc_start; loc_end; loc_ghost} =
   " end: " ^ (string_of_int loc_end.pos_lnum) ^ "/" ^ (string_of_int loc_end.pos_bol) ^ "/" ^ (string_of_int loc_end.pos_cnum) ^
   " ghost: " ^ (string_of_bool loc_ghost)
 
-let format_resolved_item {RwTypes.i_kind; i_loc; i_path; i_name; i_type; i_comment} =
-    i_kind ^ "|" ^ (format_location i_loc) ^ i_path ^ "|" ^ i_name ^ "|" ^ (clean_type i_type)(* ^ "|" ^ i_comment*)
+let format_resolved_item {RwTypes.i_kind; i_loc; i_path; i_name; i_type} =
+    i_kind ^ "|" ^ (format_location i_loc) ^ i_path ^ "|" ^ i_name ^ "|" ^ (clean_type i_type)
+
+let to_string item = match item with
+                       | Ignore -> "Ignore"
+                       | Single i -> format_resolved_item i
+                       | Multiple i -> join_list "\n" (List.map format_resolved_item i)

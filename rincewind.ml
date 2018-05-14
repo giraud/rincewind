@@ -3,12 +3,8 @@ open Cmt_format
 open Location
 open Lexing
 open RwTypes
-
-type resolvedItem = {
-  qname: string;
-  location: Location.t;
-  old: string
-}
+open Util
+open CmiExtractor
 
 let default_to defaultValue value =
   match value with
@@ -18,161 +14,152 @@ let default_to defaultValue value =
 let default_to_none = default_to "none"
 let default_to_empty = default_to ""
 
-let qname_add q v =
-  match q with
-    | "" -> v
-    | _ -> q ^ "." ^ v
-
 let deoptionalize (lst:'a option list) : 'a list =
     List.map (fun x -> match x with Some x -> x | None -> assert false) (List.filter (fun x -> x <> None) lst)
 
 let join_array separator items =
   Array.fold_left (fun acc item -> acc ^ item ^ separator) "" items
 
-let rec join_list separator items =
-  match items with
-    | [] -> ""
-    | hd :: [] -> hd
-    | hd :: tl -> hd ^ separator ^ (join_list separator tl)
-
-let read_type env typ =
+let read_type typ =
   Formatter.clean_type (Format.asprintf "%a" Printtyp.type_scheme typ)
 
+(*
+type pattern_desc =
+    Tpat_any
+  | Tpat_var of Ident.t * string loc
+  | Tpat_alias of pattern * Ident.t * string loc
+  | Tpat_constant of constant
+  | Tpat_tuple of pattern list
+  | Tpat_construct of
+      Longident.t loc * constructor_description * pattern list
+  | Tpat_variant of label * pattern option * row_desc ref
+  | Tpat_record of
+      (Longident.t loc * label_description * pattern) list *
+        closed_flag
+  | Tpat_array of pattern list
+  | Tpat_or of pattern * pattern * row_desc option
+  | Tpat_lazy of pattern
+*)
 let read_pattern {pat_loc; pat_env; pat_type; pat_desc; _} =
   match pat_desc with
-    | Tpat_var (ident, s) -> Some (ident.name, (read_type pat_env pat_type))
-    | _ -> None
+    | Tpat_var (ident, s) -> (ident.name, (read_type pat_type))
+    | Tpat_constant (c) -> ("CC", "CCT")
+    | _ -> ("VV", "TT")
 
 let rec read_expression_desc qname exp_loc exp_desc =
   match exp_desc with
-    | Texp_let (_, vbl, e) ->
-        let let_loc = (Formatter.format_location exp_loc) in
-        let let_binding = List.map (fun item -> default_to_empty (read_value_binding qname item)) vbl in
-        let next_expr = read_expression qname e in
-        Some (let_loc ^ (join_list "__EXP_LET__" let_binding) ^ "\n" ^ (default_to_empty next_expr))
-    | Texp_function (_, cases, _) ->
-        Some (join_list "__EXP_FUN__" (List.map (fun item -> read_case qname item) cases))
-    | _ -> None
+    | Texp_ident (path, loc, val_desc) ->
+        Single  {i_kind="_Ident_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=(read_type val_desc.val_type)}
+    | Texp_constant (constant) ->
+        (*Ignore;*)
+        Single  {i_kind="_Constant_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}
+    | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
+        Multiple (flat_resolved_items (List.map (parse_value_binding qname) vbl))
+        (*let re = read_expression (qname ^ "EE") e in*)
+        (*let ve = List.map (parse_value_binding qname) vbl in*)
+        (*Multiple (List.append [re] (flat_resolved_items ve))*)
+        (*Single {i_kind="_L_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}*)
+    | Texp_function (label, cases, partial) ->
+        (*Single {i_kind="_F_"; i_loc=exp_loc; i_path=qname; i_name=label; i_type=""}*)
+        Multiple (flat_resolved_items (List.map (read_case qname) cases))
+    | Texp_apply (e, x(*(label * expression option * optional) list*)) ->
+        Single {i_kind="_Apply_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}
+    | Texp_match (e, cases, cases', partial) ->
+        Single {i_kind="_Match_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}
+    | Texp_try (e, cases) ->
+        Single {i_kind="_Try_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}
+    | Texp_tuple (es(*expression list*)) ->
+        Single {i_kind="_Tuple_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}
+    (*| Texp_construct of*)
+        (*Longident.t loc * constructor_description * expression list*)
+    (*| Texp_variant of label * expression option*)
+    (*| Texp_record of*)
+        (*(Longident.t loc * label_description * expression) list **)
+          (*expression option*)
+    (*| Texp_field of expression * Longident.t loc * label_description*)
+    (*| Texp_setfield of*)
+        (*expression * Longident.t loc * label_description * expression*)
+    (*| Texp_array of expression list*)
+    (*| Texp_ifthenelse of expression * expression * expression option*)
+    (*| Texp_sequence of expression * expression*)
+    (*| Texp_while of expression * expression*)
+    (*| Texp_for of*)
+        (*Ident.t * Parsetree.pattern * expression * expression * direction_flag **)
+          (*expression*)
+    (*| Texp_send of expression * meth * expression option*)
+    (*| Texp_new of Path.t * Longident.t loc * Types.class_declaration*)
+    (*| Texp_instvar of Path.t * Path.t * string loc*)
+    (*| Texp_setinstvar of Path.t * Path.t * string loc * expression*)
+    (*| Texp_override of Path.t * (Path.t * string loc * expression) list*)
+    (*| Texp_letmodule of Ident.t * string loc * module_expr * expression*)
+    (*| Texp_assert of expression*)
+    (*| Texp_lazy of expression*)
+    (*| Texp_object of class_structure * string list*)
+    (*| Texp_pack of module_expr*)
+    (*| Texp_match (e, cases, cases', partial) -> read_expression qname e*)
+    | _ -> Single {i_kind="NYI"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}
 
-and read_case qname {c_rhs} =
-  match read_expression_desc qname c_rhs.exp_loc c_rhs.exp_desc with
-    | Some x -> x
-    | _ -> ""
+(* case = {
+  c_lhs: pattern;
+  c_guard: expression option;
+  c_rhs: expression;
+} *)
+and read_case qname {c_lhs; c_guard; c_rhs} =
+  let (pat_name, pat_type) = read_pattern c_lhs in
+  Printf.printf "n:%s t:%s\n" pat_name pat_type;
+  read_expression_desc qname c_rhs.exp_loc c_rhs.exp_desc
 
+(* expression =
+      exp_desc: expression_desc;
+      exp_loc: Location.t;
+      exp_extra: (exp_extra * Location.t * attribute list) list;
+      exp_type: type_expr;
+      exp_env: Env.t;
+      exp_attributes: attribute list;
+*)
 and read_expression qname {exp_loc; exp_desc; _} =
   read_expression_desc qname exp_loc exp_desc
 
-and read_value_binding qname {vb_pat; vb_expr; vb_attributes; vb_loc} =
-    let pattern = read_pattern vb_pat in
-    match pattern with
-      | None -> None
-      | Some (pat_name, pat_type) ->
-           let expressions = read_expression (qname_add qname pat_name) vb_expr in
-           match expressions with
-              | None -> Some (qname ^ "|" ^ pat_name ^ "|" ^ pat_type)
-              | Some e -> Some (qname ^ "|" ^ pat_name ^ "|" ^ pat_type ^ "\n" ^ e)
+and parse_value_binding qname {vb_pat; vb_expr; vb_attributes; vb_loc} =
+    let (pat_name, pat_type) = read_pattern vb_pat in
+    let rootExpression = {i_kind="V"; i_loc=vb_loc; i_path=qname; i_name=pat_name; i_type=pat_type} in
+    let expressions = read_expression (qname_add qname pat_name) vb_expr in
+    match expressions with
+        | Ignore -> Ignore
+        | Single e -> Multiple (List.append [rootExpression] [e])
+        | Multiple e -> Multiple (List.append [rootExpression] e)
 
 let read_module_binding {mb_expr; _} =
   match mb_expr.mod_desc with
     | Tmod_structure s -> Some s
     | _ -> None
 
-let rec read_structure_item qname {str_desc; str_loc; str_env } =
-  match str_desc with
-    | Tstr_value (_, vb) -> Some {qname=qname; location=str_loc; old=(join_list ";" (List.map (fun item -> default_to_empty (read_value_binding qname item)) vb)) }
-    | Tstr_module mb ->
-        (match read_module_binding mb with
-          | None -> None
-          | Some mbs ->
-              let qname = qname_add qname mb.mb_id.name in
-              Some {qname=qname; location=str_loc; old = (join_list "\n" (List.map (fun item -> (match (read_structure_item qname item) with | None -> "__RSI__" | Some i -> i.old)) mbs.str_items)) })
-    | _ -> None
+let parse_structure_item qname {str_desc; str_loc; str_env } =
+    match str_desc with
+        | Tstr_value (rec_flag, vbl) ->
+            let items = List.map (parse_value_binding qname) vbl in
+            Multiple (flat_resolved_items items)
+        | _ -> Multiple []
 
-(* map all structure items to a transformed structure *)
-let read_structure {str_items(*structure_item list*); str_type(*Types.signature*); str_final_env(*Env.t*)} =
-  List.map (fun item -> (read_structure_item "" item)) str_items
-
-(*
-binary_annots =
-  | Packed of Types.signature * string list
-  | Implementation of structure
-  | Interface of signature
-  | Partial_implementation of binary_part array
-  | Partial_interface of binary_part array
+(* binary_annots =
+   | Packed of Types.signature * string list
+   | Implementation of structure
+   | Interface of signature
+   | Partial_implementation of binary_part array
+   | Partial_interface of binary_part array
 *)
-let read_cmt_annots annots =
-  match annots with
-    | Implementation typedTree -> Some (read_structure typedTree)
-    | _ -> None
-
-let print_cmt_info cmt =
+let parse_cmt cmt =
     (*Printf.printf "modname:%s\n" info.cmt_modname;*)
     (*Printf.printf "args:%s\n" (join_array " " info.cmt_args);*)
     (*Printf.printf "sourcefile:%s\n" (default_to_none info.cmt_sourcefile);*)
     (*Printf.printf "builddir:%s\n" info.cmt_builddir;*)
     (*Printf.printf "loadpath:%s\n" (join_list "," info.cmt_loadpath);*)
     (*Printf.printf "use_summaries:%b\n" info.cmt_use_summaries;*)
-    let annots = read_cmt_annots cmt.cmt_annots in
-    match annots with
-      | Some values -> Printf.printf "%s\n" (join_list "\n" (List.map (fun i -> i.qname ^ (Formatter.format_location i.location) ^ i.old) (deoptionalize values)))
-      | None -> Printf.printf "\n";
-    ()
-
-(*
-type value_description =
-  { val_type: type_expr;                (* Type of the value *)
-    val_kind: value_kind;
-    val_loc: Location.t;
-    val_attributes: Parsetree.attributes;
-}
-*)
-
-(*
-signature = signature_item list
-
-and signature_item =
-    Sig_value of Ident.t * value_description
-  | Sig_type of Ident.t * type_declaration * rec_status
-  | Sig_typext of Ident.t * extension_constructor * ext_status
-  | Sig_module of Ident.t * module_declaration * rec_status
-  | Sig_modtype of Ident.t * modtype_declaration
-  | Sig_class of Ident.t * class_declaration * rec_status
-  | Sig_class_type of Ident.t * class_type_declaration * rec_status
-*)
-let rec parse_cmi_sign path signature =
-    match signature with
-        | Types.Sig_value (ident, desc) -> Single {i_kind="V"; i_loc=desc.val_loc; i_path=path; i_name=ident.name; i_type=(Format.asprintf "%a" Printtyp.type_scheme desc.val_type); i_comment=""}
-        | Types.Sig_type (ident, decl, status) ->  Single {i_kind="T"; i_loc=decl.type_loc; i_path=path; i_name=ident.name; i_type=""; i_comment=""}
-        | Types.Sig_typext (ident, constr, status) -> Single {i_kind="E"; i_loc=constr.ext_loc; i_path=path; i_name=ident.name; i_type=""; i_comment=""}
-        | Types.Sig_module (ident, decl, status) -> (
-            let x = match decl.md_type with
-                | Mty_signature signature -> List.map (parse_cmi_sign (qname_add path ident.name)) signature
-                | _ -> []
-                in
-            (*Multiple (List.append [{i_kind="M"; i_loc=decl.md_loc; i_path=path; i_name=ident.name; i_type="decl.md_type"; i_comment=""}] (flat_resolved_items x))*)
-            Multiple (flat_resolved_items x)
-        )
-        | Types.Sig_modtype (ident, decl) -> Single {i_kind="N"; i_loc=decl.mtd_loc; i_path=path; i_name=ident.name; i_type=""; i_comment=""}
-        | Types.Sig_class (ident, decl, status) -> Single {i_kind="C"; i_loc=decl.cty_loc; i_path=path; i_name=ident.name; i_type=""; i_comment=""}
-        | Types.Sig_class_type (ident, decl, status) -> Single {i_kind="D"; i_loc=decl.clty_loc; i_path=path; i_name=ident.name; i_type=""; i_comment=""}
-
-(**
-type cmi_infos =
-    cmi_name : string; module nama
-    cmi_sign : Types.signature_item list;
-    cmi_crcs : (string * Digest.t option) list;
-    cmi_flags : pers_flags list;
-*)
-let parse_cmi cmi =
-    let {Cmi_format.cmi_name; cmi_sign; _} = cmi in
-    let resolved_items = List.map (parse_cmi_sign "") cmi_sign in
-    let to_string item = match item with
-                           | Single i -> Formatter.format_resolved_item i
-                           | Multiple i -> join_list "\n" (List.map Formatter.format_resolved_item i) in
-    List.map to_string resolved_items
-
-let parse_cmt cmt =
-    []
+    let {Cmt_format.cmt_modname; cmt_annots; _} = cmt in
+    let resolved_items = match cmt_annots with
+        | Implementation t -> List.map (fun item -> (parse_structure_item cmt_modname item)) t.str_items
+        | _ -> [] in
+    List.map Formatter.to_string resolved_items
 
 (*
 Print decoded file info on standard stream. File can be one of:
