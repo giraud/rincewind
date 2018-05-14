@@ -6,20 +6,6 @@ open RwTypes
 open Util
 open CmiExtractor
 
-let default_to defaultValue value =
-  match value with
-    | Some v -> v
-    | None -> defaultValue
-
-let default_to_none = default_to "none"
-let default_to_empty = default_to ""
-
-let deoptionalize (lst:'a option list) : 'a list =
-    List.map (fun x -> match x with Some x -> x | None -> assert false) (List.filter (fun x -> x <> None) lst)
-
-let join_array separator items =
-  Array.fold_left (fun acc item -> acc ^ item ^ separator) "" items
-
 let read_type typ =
   Formatter.clean_type (Format.asprintf "%a" Printtyp.type_scheme typ)
 
@@ -48,8 +34,7 @@ let read_pattern {pat_loc; pat_env; pat_type; pat_desc; _} =
 
 let rec read_expression_desc qname exp_loc exp_desc =
   match exp_desc with
-    | Texp_ident (path, loc, val_desc) ->
-        Single  {i_kind="_Ident_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=(read_type val_desc.val_type)}
+    | Texp_ident (path, loc, val_desc) -> Ignore
     | Texp_constant (constant) -> Ignore
     | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
         Multiple (flat_resolved_items (List.map (parse_value_binding qname) vbl))
@@ -58,16 +43,11 @@ let rec read_expression_desc qname exp_loc exp_desc =
         (*Multiple (List.append [re] (flat_resolved_items ve))*)
         (*Single {i_kind="_L_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}*)
     | Texp_function (label, cases, partial) ->
-        (*Single {i_kind="_F_"; i_loc=exp_loc; i_path=qname; i_name=label; i_type=""}*)
         Multiple (flat_resolved_items (List.map (read_case qname) cases))
-    | Texp_apply (e, x(*(label * expression option * optional) list*)) ->
-        Single {i_kind="_Apply_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}
-    | Texp_match (e, cases, cases', partial) ->
-        Single {i_kind="_Match_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}
-    | Texp_try (e, cases) ->
-        Single {i_kind="_Try_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}
-    | Texp_tuple (es(*expression list*)) ->
-        Single {i_kind="_Tuple_"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}
+    | Texp_apply (e, x(*(label * expression option * optional) list*)) -> Ignore
+    | Texp_match (e, cases, cases', partial) -> Ignore
+    | Texp_try (e, cases) -> Ignore
+    | Texp_tuple (es(*expression list*)) -> Ignore
     (*| Texp_construct of*)
         (*Longident.t loc * constructor_description * expression list*)
     (*| Texp_variant of label * expression option*)
@@ -95,7 +75,7 @@ let rec read_expression_desc qname exp_loc exp_desc =
     (*| Texp_object of class_structure * string list*)
     (*| Texp_pack of module_expr*)
     (*| Texp_match (e, cases, cases', partial) -> read_expression qname e*)
-    | _ -> Single {i_kind="NYI"; i_loc=exp_loc; i_path=qname; i_name=""; i_type=""}
+    | _ -> Ignore
 
 (* case = {
   c_lhs: pattern;
