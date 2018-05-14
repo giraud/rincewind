@@ -23,13 +23,8 @@ let qname_add q v =
     | "" -> v
     | _ -> q ^ "." ^ v
 
-let r = Str.regexp "\n"
-
 let deoptionalize (lst:'a option list) : 'a list =
     List.map (fun x -> match x with Some x -> x | None -> assert false) (List.filter (fun x -> x <> None) lst)
-
-let clean_type str =
-  Str.global_replace r " " str
 
 let join_array separator items =
   Array.fold_left (fun acc item -> acc ^ item ^ separator) "" items
@@ -40,26 +35,8 @@ let rec join_list separator items =
     | hd :: [] -> hd
     | hd :: tl -> hd ^ separator ^ (join_list separator tl)
 
-let position_to_string pos =
-  (string_of_int pos.pos_lnum) ^ "." ^ (string_of_int (pos.pos_cnum - pos.pos_bol(*begining of line*) + 1))
-
-let location_to_string {loc_start; loc_end; loc_ghost} =
-  (position_to_string loc_start) (*^ "," ^ (position_to_string loc_end)*) ^ "|"
-
-(*loc_start loc_end =>
-type position = {
-  pos_fname : string;
-  pos_lnum : int;  line number
-  pos_bol : int;   beginnig of line
-  pos_cnum : int;  column number
-}*)
-let full_location_to_string {loc_start; loc_end; loc_ghost} =
-  "start: " ^ (string_of_int loc_start.pos_lnum) ^ "/" ^ (string_of_int loc_start.pos_bol) ^ "/" ^ (string_of_int loc_start.pos_cnum) ^
-  " end: " ^ (string_of_int loc_end.pos_lnum) ^ "/" ^ (string_of_int loc_end.pos_bol) ^ "/" ^ (string_of_int loc_end.pos_cnum) ^
-  " ghost: " ^ (string_of_bool loc_ghost)
-
 let read_type env typ =
-  clean_type (Format.asprintf "%a" Printtyp.type_scheme typ)
+  Formatter.clean_type (Format.asprintf "%a" Printtyp.type_scheme typ)
 
 let read_pattern {pat_loc; pat_env; pat_type; pat_desc; _} =
   match pat_desc with
@@ -69,7 +46,7 @@ let read_pattern {pat_loc; pat_env; pat_type; pat_desc; _} =
 let rec read_expression_desc qname exp_loc exp_desc =
   match exp_desc with
     | Texp_let (_, vbl, e) ->
-        let let_loc = (location_to_string exp_loc) in
+        let let_loc = (Formatter.format_location exp_loc) in
         let let_binding = List.map (fun item -> default_to_empty (read_value_binding qname item)) vbl in
         let next_expr = read_expression qname e in
         Some (let_loc ^ (join_list "__EXP_LET__" let_binding) ^ "\n" ^ (default_to_empty next_expr))
@@ -137,7 +114,7 @@ let print_cmt_info cmt =
     (*Printf.printf "use_summaries:%b\n" info.cmt_use_summaries;*)
     let annots = read_cmt_annots cmt.cmt_annots in
     match annots with
-      | Some values -> Printf.printf "%s\n" (join_list "\n" (List.map (fun i -> i.qname ^ (location_to_string i.location) ^ i.old) (deoptionalize values)))
+      | Some values -> Printf.printf "%s\n" (join_list "\n" (List.map (fun i -> i.qname ^ (Formatter.format_location i.location) ^ i.old) (deoptionalize values)))
       | None -> Printf.printf "\n";
     ()
 
@@ -149,19 +126,6 @@ type value_description =
     val_attributes: Parsetree.attributes;
 }
 *)
-
-type resolved_item =
-    | Single of resolved_item_description
-    | Multiple of resolved_item_description list
-
-let rec flat_resolved_items resolved_items =
-    match resolved_items with
-        | [] -> []
-        | Single i :: tl -> (List.append [i] (flat_resolved_items tl))
-        | Multiple l :: tl -> (List.append l (flat_resolved_items tl))
-
-let format_resolved_item {i_kind; i_loc; i_path; i_name; i_type; i_comment} =
-    i_kind ^ "|" ^ (location_to_string i_loc) ^ i_path ^ "|" ^ i_name ^ "|" ^ (clean_type i_type)(* ^ "|" ^ i_comment*)
 
 (*
 signature = signature_item list
@@ -203,9 +167,12 @@ let parse_cmi cmi =
     let {Cmi_format.cmi_name; cmi_sign; _} = cmi in
     let resolved_items = List.map (parse_cmi_sign "") cmi_sign in
     let to_string item = match item with
-                           | Single i -> format_resolved_item i
-                           | Multiple i -> join_list "\n" (List.map format_resolved_item i) in
+                           | Single i -> Formatter.format_resolved_item i
+                           | Multiple i -> join_list "\n" (List.map Formatter.format_resolved_item i) in
     List.map to_string resolved_items
+
+let parse_cmt cmt =
+    []
 
 (*
 Print decoded file info on standard stream. File can be one of:
@@ -216,8 +183,8 @@ Print decoded file info on standard stream. File can be one of:
 let print_info fname =
     let cmio, cmto = Cmt_format.read fname in
     let entries = match cmio, cmto with
-        | Some cmi, Some cmt -> print_cmt_info cmt; []
-        | None, Some cmt -> print_cmt_info cmt; []
+        | Some cmi, Some cmt -> parse_cmt cmt
+        | None, Some cmt -> parse_cmt cmt
         | Some cmi, None -> parse_cmi cmi
         | None, None -> ["Can't read " ^ fname] in
     match (entries) with
