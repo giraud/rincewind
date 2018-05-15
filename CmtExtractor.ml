@@ -112,7 +112,7 @@ and read_expression qname {exp_loc; exp_desc; _} =
 
 and parse_value_binding qname {vb_pat; vb_expr; vb_attributes; vb_loc} =
     let (pat_name, pat_type) = read_pattern vb_pat in
-    let rootExpression = {i_kind="V"; i_loc=vb_loc; i_path=qname; i_name=pat_name; i_type=pat_type} in
+    let rootExpression = {i_kind="V"; i_loc=vb_pat.pat_loc; i_path=qname; i_name=pat_name; i_type=pat_type} in
     let expressions = read_expression (qname_add qname pat_name) vb_expr in
     match expressions with
         | Ignore -> Single rootExpression
