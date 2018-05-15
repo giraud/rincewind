@@ -1,6 +1,6 @@
 module Driver = struct
 
-    let version = "0.2"
+    let version = "0.1"
     let usageMessage = "Usage: rincewind.exe <filename>\n" ^ version
 
     (**

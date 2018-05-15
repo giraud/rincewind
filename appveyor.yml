@@ -38,5 +38,4 @@ deploy:
   package: rincewind
   version: ${rw_version}
   publish: true
-  on:
-    appveyor_repo_tag: true
+  override: true

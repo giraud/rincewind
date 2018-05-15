@@ -14,6 +14,6 @@
     "gpgSign": false
   },
 
-  "files": [{"includePattern": "_build/final/(.*)", "uploadPattern": "$1"}],
+  "files": [{"includePattern": "_build/final/(.*)", "uploadPattern": "$1", "matrixParams": {"override": 1}}],
   "publish": true
 }
