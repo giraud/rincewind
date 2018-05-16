@@ -1,17 +1,11 @@
 open Typedtree
 open Types
 
-type entry_kind = Value | Record
-
 let read_type typ =
   Formatter.clean_type (Format.asprintf "%a" Printtyp.type_scheme typ)
 
 let read_etype {exp_type; _} =
   read_type exp_type
-
-let write ~kind ~loc ~path ~name ~typ =
-    let kind_name = match kind with | Value -> "V" | Record -> "R" in
-    Printf.printf "%s|%s|%s|%s|%s\n" kind_name (Formatter.format_location loc) path name typ
 
 (**
  Extract the name of a pattern
@@ -41,7 +35,7 @@ let rec read_expression qname {exp_loc; exp_desc; _} =
     | Texp_function (_(*label*), cases, _(*partial*)) ->
         List.iter (read_case qname) cases
     | Texp_record (fields, _(*expression option*)) ->
-        List.iter (fun (_, ld, e) -> write ~kind:Record ~loc:e.exp_loc ~path:qname ~name:ld.lbl_name ~typ:(read_etype e)) fields
+        List.iter (fun (_, ld, e) -> Formatter.format_resolved_item ~kind:Record ~loc:e.exp_loc ~path:qname ~name:ld.lbl_name ~typ:(read_etype e)) fields
     | _ -> ()
 
 (**
@@ -56,7 +50,7 @@ and read_case qname {c_rhs(*expression*); _} =
 and read_value_binding qname {vb_pat; vb_expr; vb_attributes; vb_loc} =
     let {pat_loc; pat_env; pat_type; pat_desc; _} = vb_pat in
     let name = (read_pattern_desc pat_desc) in
-    write ~kind:Value ~loc:vb_pat.pat_loc ~path:qname ~name:name ~typ:(read_type pat_type);
+    Formatter.format_resolved_item ~kind:Value ~loc:vb_pat.pat_loc ~path:qname ~name:name ~typ:(read_type pat_type);
     read_expression (Util.path qname name) vb_expr
 
 (**

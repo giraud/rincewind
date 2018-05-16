@@ -11,13 +11,11 @@ module Driver = struct
     *)
     let print_info fname =
         let cmio, cmto = Cmt_format.read fname in
-        let entries = match cmio, cmto with
-            | _, Some cmt -> CmtExtractor.read_cmt cmt; []
-            | Some cmi, None -> CmiExtractor.parse_cmi cmi
-            | None, None -> ["Can't read " ^ fname] in
-        match (entries) with
-            | [] -> Printf.printf "\n"
-            | _ -> Printf.printf "%s" (Util.join_list "\n" entries);
+        match cmio, cmto with
+            | _, Some cmt -> CmtExtractor.read_cmt cmt; ()
+            | Some cmi, None -> CmiExtractor.read_cmi cmi; ()
+            | None, None -> failwith ("Can't read " ^ fname)
+        Printf.printf "\n";
         ()
 
     let main () =
