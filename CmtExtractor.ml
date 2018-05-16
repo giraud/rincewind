@@ -1,6 +1,7 @@
 open Location
 open Lexing
 open Typedtree
+open Types
 
 let read_type typ =
   Formatter.clean_type (Format.asprintf "%a" Printtyp.type_scheme typ)
@@ -30,10 +31,13 @@ let rec read_pattern_desc pat_desc(*pattern_desc*) =
  *)
 let rec read_expression_desc qname exp_loc exp_desc =
   match exp_desc with
-    | Texp_let (_(*flag rec/nonrec*), vbl, _(*e*)) ->
-        List.iter (read_value_binding qname) vbl
+    | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
+        List.iter (read_value_binding qname) vbl;
+        read_expression qname e
     | Texp_function (_(*label*), cases, _(*partial*)) ->
         List.iter (read_case qname) cases
+    | Texp_record (fields, _(*expression option*)) ->
+        List.iter (fun (_, ld, e) -> write ~kind:"R" ~loc:e.exp_loc ~path:qname ~name:ld.lbl_name ~typ:(read_type e.exp_type)) fields
     | _ -> ()
 
 (**
