@@ -1,5 +1,3 @@
-open Location
-open Lexing
 open Typedtree
 open Types
 
