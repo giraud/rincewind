@@ -1,6 +1,8 @@
 open RwTypes
-open Util
 open Formatter
+
+let read_type typ =
+  Formatter.clean_type (Format.asprintf "%a" Printtyp.type_scheme typ)
 
 (*
 signature = signature_item list
@@ -16,12 +18,12 @@ and signature_item =
 *)
 let rec parse_cmi_sign path signature =
     match signature with
-        | Types.Sig_value (ident, desc) -> Single {i_kind="V"; i_loc=desc.val_loc; i_path=path; i_name=ident.name; i_type=(Format.asprintf "%a" Printtyp.type_scheme desc.val_type)}
+        | Types.Sig_value (ident, desc) -> Single {i_kind="V"; i_loc=desc.val_loc; i_path=path; i_name=ident.name; i_type=(read_type desc.val_type)}
         | Types.Sig_type (ident, decl, status) ->  Single {i_kind="T"; i_loc=decl.type_loc; i_path=path; i_name=ident.name; i_type=""}
         | Types.Sig_typext (ident, constr, status) -> Single {i_kind="E"; i_loc=constr.ext_loc; i_path=path; i_name=ident.name; i_type=""}
         | Types.Sig_module (ident, decl, status) -> (
             let x = match decl.md_type with
-                | Mty_signature signature -> List.map (parse_cmi_sign (qname_add path ident.name)) signature
+                | Mty_signature signature -> List.map (parse_cmi_sign (Util.path path ident.name)) signature
                 | _ -> []
                 in
             Multiple (flat_resolved_items x)

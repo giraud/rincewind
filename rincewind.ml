@@ -12,7 +12,7 @@ module Driver = struct
     let print_info fname =
         let cmio, cmto = Cmt_format.read fname in
         let entries = match cmio, cmto with
-            | _, Some cmt -> CmtExtractor.parse_cmt cmt
+            | _, Some cmt -> CmtExtractor.read_cmt cmt; []
             | Some cmi, None -> CmiExtractor.parse_cmi cmi
             | None, None -> ["Can't read " ^ fname] in
         match (entries) with

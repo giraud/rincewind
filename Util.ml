@@ -1,8 +1,10 @@
-
-let qname_add q v =
-  match q with
+(**
+ Creates a new path by concatenating the value to the existing path
+ *)
+let path p v =
+  match p with
     | "" -> v
-    | _ -> q ^ "." ^ v
+    | _ -> p ^ "." ^ v
 
 let rec join_list separator items =
   match items with
