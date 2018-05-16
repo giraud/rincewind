@@ -15,4 +15,4 @@ let format_location {loc_start; loc_end; loc_ghost} =
 
 let format_resolved_item ~kind ~loc ~path ~name ~typ =
     let kind_name = match kind with | Value -> "V" | Record -> "R" | _ -> "X" in
-    Printf.printf "%s|%s|%s|%s|%s\n" kind_name (format_location loc) path name typ
+    Printf.printf "%s|%s|%s|%s|%s\n" kind_name (format_location loc) path name (clean_type typ)

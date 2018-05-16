@@ -1,11 +1,11 @@
 open Typedtree
 open Types
 
-let read_type typ =
-  Formatter.clean_type (Format.asprintf "%a" Printtyp.type_scheme typ)
-
+(**
+ Shortcut to read a type from an expression
+ *)
 let read_etype {exp_type; _} =
-  read_type exp_type
+  RwTypes.read_type exp_type
 
 (**
  Extract the name of a pattern
@@ -50,7 +50,7 @@ and read_case qname {c_rhs(*expression*); _} =
 and read_value_binding qname {vb_pat; vb_expr; vb_attributes; vb_loc} =
     let {pat_loc; pat_env; pat_type; pat_desc; _} = vb_pat in
     let name = (read_pattern_desc pat_desc) in
-    Formatter.format_resolved_item ~kind:Value ~loc:vb_pat.pat_loc ~path:qname ~name:name ~typ:(read_type pat_type);
+    Formatter.format_resolved_item ~kind:Value ~loc:vb_pat.pat_loc ~path:qname ~name:name ~typ:(RwTypes.read_type pat_type);
     read_expression (Util.path qname name) vb_expr
 
 (**
