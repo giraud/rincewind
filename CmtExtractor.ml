@@ -3,11 +3,17 @@ open Lexing
 open Typedtree
 open Types
 
+type entry_kind = Value | Record
+
 let read_type typ =
   Formatter.clean_type (Format.asprintf "%a" Printtyp.type_scheme typ)
 
+let read_etype {exp_type; _} =
+  read_type exp_type
+
 let write ~kind ~loc ~path ~name ~typ =
-    Printf.printf "%s|%s|%s|%s|%s\n" kind (Formatter.format_location loc) path name typ
+    let kind_name = match kind with | Value -> "V" | Record -> "R" in
+    Printf.printf "%s|%s|%s|%s|%s\n" kind_name (Formatter.format_location loc) path name typ
 
 (**
  Extract the name of a pattern
@@ -27,9 +33,9 @@ let rec read_pattern_desc pat_desc(*pattern_desc*) =
     | Tpat_lazy (pattern) -> "_Lazy_"
 
 (**
- Extract interesting info from an expression detail
+ Extract interesting info from an expression
  *)
-let rec read_expression_desc qname exp_loc exp_desc =
+let rec read_expression qname {exp_loc; exp_desc; _} =
   match exp_desc with
     | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
         List.iter (read_value_binding qname) vbl;
@@ -37,35 +43,26 @@ let rec read_expression_desc qname exp_loc exp_desc =
     | Texp_function (_(*label*), cases, _(*partial*)) ->
         List.iter (read_case qname) cases
     | Texp_record (fields, _(*expression option*)) ->
-        List.iter (fun (_, ld, e) -> write ~kind:"R" ~loc:e.exp_loc ~path:qname ~name:ld.lbl_name ~typ:(read_type e.exp_type)) fields
+        List.iter (fun (_, ld, e) -> write ~kind:Record ~loc:e.exp_loc ~path:qname ~name:ld.lbl_name ~typ:(read_etype e)) fields
     | _ -> ()
 
 (**
  Extract information from the right handler of a case
  *)
 and read_case qname {c_rhs(*expression*); _} =
-  (*let (pat_name, pat_type) = read_pattern c_lhs in Printf.printf "n:%s t:%s\n" pat_name pat_type;*)
-  read_expression_desc qname c_rhs.exp_loc c_rhs.exp_desc
+  read_expression qname c_rhs
 
 (**
- expression =
-   exp_desc: expression_desc;
-   exp_loc: Location.t;
-   exp_extra: (exp_extra * Location.t * attribute list) list;
-   exp_type: type_expr;
-   exp_env: Env.t;
-   exp_attributes: attribute list;
-*)
-and read_expression qname {exp_loc; exp_desc; _} =
-  read_expression_desc qname exp_loc exp_desc
-
+ Read binding amd print it on standard output
+ *)
 and read_value_binding qname {vb_pat; vb_expr; vb_attributes; vb_loc} =
     let {pat_loc; pat_env; pat_type; pat_desc; _} = vb_pat in
     let name = (read_pattern_desc pat_desc) in
-    write ~kind:"V" ~loc:vb_pat.pat_loc ~path:qname ~name:name ~typ:(read_type pat_type);
+    write ~kind:Value ~loc:vb_pat.pat_loc ~path:qname ~name:name ~typ:(read_type pat_type);
     read_expression (Util.path qname name) vb_expr
 
 (**
+ Iterate on parsedtree
  *)
 let rec read_structure_item qname {str_desc(*structure_item_desc*); _} =
     let read_module_expression qname {mod_desc} =
