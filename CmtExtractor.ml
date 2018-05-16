@@ -79,5 +79,5 @@ let read_cmt cmt =
     (*Printf.printf "use_summaries:%b\n" info.cmt_use_summaries;*)
     let {Cmt_format.cmt_modname; cmt_annots(*binary_annots*); _} = cmt in
     match cmt_annots with
-        | Implementation s -> List.map (fun item -> (read_structure_item cmt_modname item)) s.str_items
-        | _ -> []
+        | Implementation s -> List.iter (fun item -> (read_structure_item cmt_modname item)) s.str_items
+        | _ -> ()

@@ -1,22 +1,21 @@
+(**
+ Print decoded file info on standard stream. File can be one of:
+  .cmi   Compiled module interface from a corresponding .mli source file.
+  .cmt   Typed abstract syntax tree for module implementations.
+  .cmti  Typed abstract syntax tree for module interfaces.
+*)
+let print_info fname =
+    let cmio, cmto = Cmt_format.read fname in
+    match cmio, cmto with
+        | _, Some cmt -> CmtExtractor.read_cmt cmt
+        | Some cmi, None -> CmiExtractor.read_cmi cmi
+        | None, None -> Printf.printf "Can't read %s" fname;
+    Printf.printf "\n"
+
 module Driver = struct
 
     let version = "0.1"
     let usageMessage = "Usage: rincewind.exe <filename>\n" ^ version
-
-    (**
-     Print decoded file info on standard stream. File can be one of:
-      .cmi   Compiled module interface from a corresponding .mli source file.
-      .cmt   Typed abstract syntax tree for module implementations.
-      .cmti  Typed abstract syntax tree for module interfaces.
-    *)
-    let print_info fname =
-        let cmio, cmto = Cmt_format.read fname in
-        match cmio, cmto with
-            | _, Some cmt -> CmtExtractor.read_cmt cmt; ()
-            | Some cmi, None -> CmiExtractor.read_cmi cmi; ()
-            | None, None -> failwith ("Can't read " ^ fname)
-        Printf.printf "\n";
-        ()
 
     let main () =
         let args = ref [] in
