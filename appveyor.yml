@@ -2,7 +2,7 @@ platform:
   - x86
 
 environment:
-  RW_VERSION: 0.1
+  RW_VERSION: 0.2-dev
   FORK_USER: ocaml
   FORK_BRANCH: master
   CYG_ROOT: C:\cygwin64

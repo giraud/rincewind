@@ -14,7 +14,7 @@ let print_info fname =
 
 module Driver = struct
 
-    let version = "0.1"
+    let version = "0.2-dev"
     let usageMessage = "Usage: rincewind.exe <filename>\n" ^ version
 
     let main () =
