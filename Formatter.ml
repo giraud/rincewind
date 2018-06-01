@@ -16,3 +16,6 @@ let format_location {loc_start; loc_end; loc_ghost} =
 let format_resolved_item ~kind ~loc ~path ~name ~typ =
     let kind_name = match kind with | Value -> "V" | Record -> "R" | _ -> "X" in
     Printf.printf "%s|%s|%s|%s|%s\n" kind_name (format_location loc) path name (clean_type typ)
+
+let format_open {o_loc; o_name; o_items; _} =
+    Printf.printf "O|%s|%s|%s" (format_location o_loc) o_name (Util.join_list ", " !o_items)

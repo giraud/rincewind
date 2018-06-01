@@ -1,3 +1,4 @@
+
 Ident.t => t = { stamp: int; name: string; mutable flags: int }
 
 lexing.ml
@@ -126,6 +127,15 @@ module_expr_desc =
   | Tmod_constraint of
       module_expr * Types.module_type * module_type_constraint * module_coercion
   | Tmod_unpack of expression * Types.module_type
+}
+
+typedtree.ml
+open_description = {
+  	 open_path: Path.t;
+     open_txt: Longident.t loc;
+     open_override: override_flag;
+     open_loc: Location.t;
+     open_attributes: attribute list;
 }
 
 typedtree.ml
