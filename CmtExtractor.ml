@@ -35,8 +35,12 @@ let rec read_expression qname opens {exp_loc; exp_desc; _} =
         let name = (Ident.name head) in
         let stamp = head.stamp in
         (try
-            let found = List.find (fun o -> o.o_name == name && o.o_stamp == stamp) !opens in
-            found.o_items := (Path.name path) :: !(found.o_items)
+            let resolved_open = List.find (fun o -> o.o_name == name && o.o_stamp == stamp) !opens in
+            let path_name = Path.name path in
+            let contains = List.exists (fun i -> i == path_name) !(resolved_open.o_items) in
+            match contains with
+                | false -> resolved_open.o_items := path_name :: !(resolved_open.o_items)
+                | true -> ()
         with e ->
             Printexc.to_string e; ())
     | Texp_apply (e, labels) ->
