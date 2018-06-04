@@ -46,7 +46,10 @@ let rec read_expression qname opens {exp_loc; exp_desc; _} =
     | Texp_function (_(*label*), cases, _(*partial*)) ->
         List.iter (read_case qname opens) cases
     | Texp_record (fields, _(*expression option*)) ->
-        List.iter (fun (_, ld, e) -> Formatter.format_resolved_item ~kind:Record ~loc:e.exp_loc ~path:qname ~name:ld.lbl_name ~typ:(read_etype e)) fields
+        List.iter (fun (_, ld, e) ->
+            read_expression qname opens e;
+            Formatter.format_resolved_item ~kind:Record ~loc:e.exp_loc ~path:qname ~name:ld.lbl_name ~typ:(read_etype e)
+        ) fields;
     | _ -> ()
 
 (**
