@@ -39,7 +39,9 @@ let rec read_expression qname opens {exp_loc; exp_desc; _} =
             found.o_items := (Path.name path) :: !(found.o_items)
         with e ->
             Printexc.to_string e; ())
-    | Texp_apply (e, labels) -> read_expression qname opens e
+    | Texp_apply (e, labels) ->
+        read_expression qname opens e;
+        List.iter (fun (l_loc, l_eo, o) -> match l_eo with | None -> () | Some(e) -> read_expression qname opens e) labels
     | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
         List.iter (read_value_binding qname opens) vbl;
         read_expression qname opens e
