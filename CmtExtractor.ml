@@ -34,8 +34,12 @@ let rec read_expression qname opens {exp_loc; exp_desc; _} =
         let head = (Path.head path) in
         let name = (Ident.name head) in
         let stamp = head.stamp in
-        let found = List.find (fun o -> o.o_name == name && o.o_stamp == stamp) !opens in
-        found.o_items := (Path.last path) :: !(found.o_items)
+        (try
+            let found = List.find (fun o -> o.o_name == name && o.o_stamp == stamp) !opens in
+            found.o_items := (Path.name path) :: !(found.o_items)
+        with e ->
+            Printexc.to_string e; ())
+    | Texp_apply (e, labels) -> read_expression qname opens e
     | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
         List.iter (read_value_binding qname opens) vbl;
         read_expression qname opens e
@@ -71,6 +75,7 @@ let rec read_structure_item qname opens {str_desc(*structure_item_desc*); _} =
 
     match str_desc with
         | Tstr_open {open_path; open_override; open_loc; open_attributes} -> opens := {o_name=(Path.name open_path); o_stamp=(Path.head open_path).stamp; o_loc=open_loc; o_items = ref [] } :: !opens
+        | Tstr_eval (ee, ea) -> read_expression qname opens ee
         | Tstr_value (rec_flag, vbl) -> List.iter (read_value_binding qname opens) vbl
         | Tstr_module {mb_id; mb_expr; mb_loc} -> read_module_expression (Util.path qname mb_id.name) mb_expr
         | _ -> ()
