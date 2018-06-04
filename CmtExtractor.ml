@@ -35,9 +35,9 @@ let rec read_expression qname opens {exp_loc; exp_desc; _} =
         let name = (Ident.name head) in
         let stamp = head.stamp in
         (try
-            let resolved_open = List.find (fun o -> o.o_name == name && o.o_stamp == stamp) !opens in
+            let resolved_open = List.find (fun o -> o.o_name = name && o.o_stamp = stamp) !opens in
             let path_name = Path.name path in
-            let contains = List.exists (fun i -> i == path_name) !(resolved_open.o_items) in
+            let contains = List.exists (fun i -> i = path_name) !(resolved_open.o_items) in
             match contains with
                 | false -> resolved_open.o_items := path_name :: !(resolved_open.o_items)
                 | true -> ()
