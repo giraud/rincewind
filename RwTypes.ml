@@ -7,7 +7,7 @@ type open_expr = {
 }
 
 type entry_kind =
-    Value | Record | Type | TypeExt | ModType | Class | ClassType
+    Value | Record | Type | TypeExt | ModType | Class | ClassType | Ident
 
 let read_type typ =
     Format.asprintf "%a" Printtyp.type_scheme typ

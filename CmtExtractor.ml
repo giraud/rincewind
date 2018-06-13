@@ -28,12 +28,13 @@ let rec read_pattern_desc pat_desc(*pattern_desc*) =
 (**
  Extract interesting info from an expression
  *)
-let rec read_expression qname opens {exp_loc; exp_desc; _} =
+let rec read_expression qname opens {exp_loc; exp_desc; exp_type; _} =
   match exp_desc with
-    | Texp_ident (path, loc, vd) ->
+    | Texp_ident (path, _, {Types.val_type; val_loc; _}) ->
         let head = (Path.head path) in
         let name = (Ident.name head) in
         let stamp = head.stamp in
+        Formatter.format_resolved_item ~kind:Ident ~loc:exp_loc ~path:qname ~name:name ~typ:(RwTypes.read_type exp_type);
         (try
             let resolved_open = List.find (fun o -> o.o_name = name && o.o_stamp = stamp) !opens in
             let path_name = Path.name path in
