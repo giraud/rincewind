@@ -9,5 +9,16 @@ type open_expr = {
 type entry_kind =
     Value | Record | Type | TypeExt | ModType | Class | ClassType | Ident
 
+let string_of_entry_kind k =
+    match k of
+    | Value -> "V"
+    | Record -> "R"
+    | Type -> "T"
+    | TypeExt -> "TE"
+    | ModType -> "MT"
+    | Class -> "C"
+    | ClassType -> "CT"
+    | Ident -> "I"
+
 let read_type typ =
     Format.asprintf "%a" Printtyp.type_scheme typ
