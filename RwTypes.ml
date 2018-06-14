@@ -10,7 +10,7 @@ type entry_kind =
     Value | Record | Type | TypeExt | ModType | Class | ClassType | Ident
 
 let string_of_entry_kind k =
-    match k of
+    match k with
     | Value -> "V"
     | Record -> "R"
     | Type -> "T"
