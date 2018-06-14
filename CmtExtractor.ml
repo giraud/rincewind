@@ -34,7 +34,7 @@ let rec read_expression qname opens {exp_loc; exp_desc; exp_type; _} =
         let head = (Path.head path) in
         let name = (Ident.name head) in
         let stamp = head.stamp in
-        Formatter.format_resolved_item ~kind:Ident ~loc:val_loc ~path:qname ~name:name ~typ:(RwTypes.read_type exp_type);
+        Formatter.format_resolved_item ~kind:Ident ~loc:exp_loc ~path:qname ~name:name ~typ:(RwTypes.read_type exp_type);
         (try
             let resolved_open = List.find (fun o -> o.o_name = name && o.o_stamp = stamp) !opens in
             let path_name = Path.name path in
