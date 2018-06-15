@@ -5,7 +5,7 @@ lexing.ml
 type position = {
   pos_fname : string;
   pos_lnum : int;  line number
-  pos_bol : int;   beginnig of line
+  pos_bol : int;   beginning of line
   pos_cnum : int;  column number
 }
 
