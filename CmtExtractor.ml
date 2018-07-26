@@ -45,20 +45,44 @@ let rec read_expression qname opens {exp_loc; exp_desc; exp_type; _} =
                 | true -> ()
         with e ->
             Printexc.to_string e; ())
-    | Texp_apply (e, labels) ->
-        read_expression qname opens e;
-        List.iter (fun (l_loc, l_eo, o) -> match l_eo with | None -> () | Some(e) -> read_expression qname opens e) labels
+    | Texp_constant c -> Printf.printf "X|constant\n"
     | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
         List.iter (read_value_binding qname opens) vbl;
         read_expression qname opens e
     | Texp_function (_(*label*), cases, _(*partial*)) ->
         List.iter (read_case qname opens) cases
+    | Texp_apply (e, labels) ->
+        read_expression qname opens e;
+        List.iter (fun (l_loc, l_eo, o) -> match l_eo with | None -> () | Some(e) -> read_expression qname opens e) labels
+    | Texp_match (e, cl, cl', p) -> Printf.printf "X|match\n"
+    | Texp_try (e, cl) -> Printf.printf "X|try\n"
+    | Texp_tuple (el) -> Printf.printf "X|tuple\n"
+    | Texp_construct (cloc, cd, cel) -> Printf.printf "X|construct\n"
+    | Texp_variant (l, eo) -> Printf.printf "X|variant\n"
     | Texp_record (fields, _(*expression option*)) ->
         List.iter (fun (_, ld, e) ->
             read_expression qname opens e;
             Formatter.format_resolved_item ~kind:Record ~loc:e.exp_loc ~path:qname ~name:ld.lbl_name ~typ:(read_etype e)
         ) fields;
-    | _ -> ()
+    | Texp_field (fe, floc, fd) ->
+            read_expression qname opens fe;
+            Formatter.format_resolved_item ~kind:Field ~loc:fe.exp_loc ~path:qname ~name:fd.lbl_name ~typ:(read_etype fe)
+    | Texp_setfield (e, loc, ld, e') -> Printf.printf "X|setfield\n"
+    | Texp_array (el) -> Printf.printf "X|array\n"
+    | Texp_ifthenelse (e, e', eo) -> Printf.printf "X|ifthenelse\n"
+    | Texp_sequence (e, e') -> Printf.printf "X|sequence\n"
+    | Texp_while (e, e') -> Printf.printf "X|while\n"
+    | Texp_for (i, p, e, e', flag, e'') -> Printf.printf "X|for\n"
+    | Texp_send (e, m, eo) -> Printf.printf "X|send\n"
+    | Texp_new (p, loc, cd) -> Printf.printf "X|new\n"
+    | Texp_instvar (p, p', loc) -> Printf.printf "X|instvar\n"
+    | Texp_setinstvar (p, p', loc, e) -> Printf.printf "X|setinstvar\n"
+    | Texp_override (p, el) -> Printf.printf "X|override\n"
+    | Texp_letmodule (i, loc, me, e) -> Printf.printf "X|letmodule\n"
+    | Texp_assert e -> read_expression qname opens e
+    | Texp_lazy e -> read_expression qname opens e
+    | Texp_object (cs, sl) -> Printf.printf "X|object\n"
+    | Texp_pack me -> Printf.printf "X|pack\n"
 
 (**
  Extract information from the right handler of a case
@@ -96,7 +120,8 @@ let rec read_structure_item qname opens {str_desc(*structure_item_desc*); _} =
  *)
 let read_cmt cmt =
     let opens = ref [] in
-    let {Cmt_format.cmt_modname; cmt_annots(*binary_annots*); _} = cmt in
+    let {Cmt_format.cmt_modname; cmt_annots(*binary_annots*); cmt_sourcefile; cmt_builddir; _} = cmt in
+    Printf.printf "%s|%s\n" (match cmt_sourcefile with | None -> "<NONE>" | Some s -> s) cmt_builddir;
     let _ = match cmt_annots with
         | Implementation s -> List.iter (fun item -> (read_structure_item cmt_modname opens item)) s.str_items
         | _ -> () in

@@ -7,7 +7,7 @@ type open_expr = {
 }
 
 type entry_kind =
-    Value | Record | Type | TypeExt | ModType | Class | ClassType | Ident
+    Value | Record | Type | TypeExt | ModType | Class | ClassType | Ident | Field
 
 let string_of_entry_kind k =
     match k with
@@ -19,6 +19,8 @@ let string_of_entry_kind k =
     | Class -> "C"
     | ClassType -> "CT"
     | Ident -> "I"
+    | Field -> "F"
+
 
 let read_type typ =
     Format.asprintf "%a" Printtyp.type_scheme typ
