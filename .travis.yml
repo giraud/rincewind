@@ -18,7 +18,8 @@ install:
   - bash -ex .travis-ocaml.sh
 
 before_script:
-  - opam install -y jbuilder cppo
+  - opam install -y cppo
+  - opam install -y jbuilder
 script:
   - eval `opam config env` && jbuilder build rincewind.exe
   - mkdir -p _build/final
