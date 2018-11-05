@@ -44,26 +44,43 @@ let rec read_expression qname opens {exp_loc; exp_desc; exp_type; _} =
                 | false -> resolved_open.o_items := path_name :: !(resolved_open.o_items)
                 | true -> ()
         with e ->
-            Printexc.to_string e; ())
+           let _ = Printexc.to_string e in ())
     | Texp_constant c -> Printf.printf "X|constant\n"
     | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
         List.iter (read_value_binding qname opens) vbl;
         read_expression qname opens e
+#if OCAML_MAJOR = 4 && OCAML_MINOR < 06
     | Texp_function (_(*label*), cases, _(*partial*)) ->
+#else
+    | Texp_function {arg_label; param; cases; partial}->
+#endif
         List.iter (read_case qname opens) cases
     | Texp_apply (e, labels) ->
         read_expression qname opens e;
+#if OCAML_MAJOR = 4 && OCAML_MINOR < 06
         List.iter (fun (l_loc, l_eo, o) -> match l_eo with | None -> () | Some(e) -> read_expression qname opens e) labels
+#else
+        List.iter (fun (l_label, l_eo) -> match l_eo with | None -> () | Some(e) -> read_expression qname opens e) labels
+#endif
     | Texp_match (e, cl, cl', p) -> Printf.printf "X|match\n"
     | Texp_try (e, cl) -> Printf.printf "X|try\n"
     | Texp_tuple (el) -> Printf.printf "X|tuple\n"
     | Texp_construct (cloc, cd, cel) -> Printf.printf "X|construct\n"
     | Texp_variant (l, eo) -> Printf.printf "X|variant\n"
+#if OCAML_MAJOR = 4 && OCAML_MINOR < 06
     | Texp_record (fields, _(*expression option*)) ->
         List.iter (fun (_, ld, e) ->
             read_expression qname opens e;
             Formatter.format_resolved_item ~kind:Record ~loc:e.exp_loc ~path:qname ~name:ld.lbl_name ~typ:(read_etype e)
         ) fields;
+#else
+    | Texp_record { fields; representation ; extended_expression; } ->
+        (*List.iter (fun (ld, rld) ->*)
+            (*read_expression qname opens e;*)
+            (*Formatter.format_resolved_item ~kind:Record ~loc:e.exp_loc ~path:qname ~name:ld.lbl_name ~typ:(read_etype e)*)
+        (* fields;*)
+        Printf.printf "X|record\n"
+#endif
     | Texp_field (fe, floc, fd) ->
             read_expression qname opens fe;
             Formatter.format_resolved_item ~kind:Field ~loc:fe.exp_loc ~path:qname ~name:fd.lbl_name ~typ:(read_etype fe)
@@ -83,6 +100,11 @@ let rec read_expression qname opens {exp_loc; exp_desc; exp_type; _} =
     | Texp_lazy e -> read_expression qname opens e
     | Texp_object (cs, sl) -> Printf.printf "X|object\n"
     | Texp_pack me -> Printf.printf "X|pack\n"
+#if OCAML_MAJOR = 4 && OCAML_MINOR >= 06
+    | Texp_unreachable -> Printf.printf "X|unreachable\n"
+    | Texp_letexception (x, y) -> Printf.printf "X|letexception\n"
+    | Texp_extension_constructor (x, y) -> Printf.printf "X|extensionconstructor\n"
+#endif
 
 (**
  Extract information from the right handler of a case

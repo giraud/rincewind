@@ -10,8 +10,8 @@ environment:
   matrix:
     - OPAM_SWITCH: 4.02.3+mingw64c
       OCAML_VERSION: 4.02
-    - OPAM_SWITCH: 4.03.0+mingw64c
-      OCAML_VERSION: 4.03
+    - OPAM_SWITCH: 4.06.1+mingw64c
+      OCAML_VERSION: 4.06
 
 init:
   - "echo System architecture: %PLATFORM%"
@@ -21,7 +21,7 @@ install:
 
 build_script:
   - call %CYG_ROOT%\bin\bash.exe -l %APPVEYOR_BUILD_FOLDER%\appveyor-opam.sh
-  - call %CYG_ROOT%\bin\bash.exe -lc "cd c:/projects/rincewind && eval `opam config env` && opam install jbuilder && jbuilder build rincewind.exe"
+  - call %CYG_ROOT%\bin\bash.exe -lc "cd c:/projects/rincewind && eval `opam config env` && opam install jbuilder cppo && jbuilder build rincewind.exe"
 
 after_build:
   - cmd: mkdir _build\final

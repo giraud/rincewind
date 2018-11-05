@@ -21,6 +21,5 @@ let string_of_entry_kind k =
     | Ident -> "I"
     | Field -> "F"
 
-
 let read_type typ =
     Format.asprintf "%a" Printtyp.type_scheme typ

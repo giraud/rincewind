@@ -3,5 +3,6 @@
 (executable (
     (name rincewind)
     (libraries (str compiler-libs.common))
+    (preprocess (action (run ${bin:cppo} -V OCAML:${ocaml_version} ${<} -o ${@})))
     (modes (native))
 ))
