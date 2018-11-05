@@ -21,7 +21,7 @@ install:
 
 build_script:
   - call %CYG_ROOT%\bin\bash.exe -l %APPVEYOR_BUILD_FOLDER%\appveyor-opam.sh
-  - call %CYG_ROOT%\bin\bash.exe -lc "cd c:/projects/rincewind && eval `opam config env` && opam install jbuilder cppo && jbuilder build rincewind.exe"
+  - call %CYG_ROOT%\bin\bash.exe -lc "cd c:/projects/rincewind && eval `opam config env` && opam install -y jbuilder cppo && jbuilder build rincewind.exe"
 
 after_build:
   - cmd: mkdir _build\final
