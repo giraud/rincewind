@@ -10,7 +10,7 @@ install:
 
 build_script:
 - cd "%APPVEYOR_BUILD_FOLDER%"
-- jbuilder install -y cppo
+- opam install -y jbuilder cppo
 - jbuilder build -p rincewind.exe
 
 after_build:
