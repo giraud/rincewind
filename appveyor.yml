@@ -1,31 +1,22 @@
-platform:
-  - x86
-
 environment:
   RW_VERSION: 0.4-dev
-  FORK_USER: ocaml
-  FORK_BRANCH: master
-  CYG_ROOT: C:\cygwin64
   PACKAGE: "rincewind"
   matrix:
-    - OPAM_SWITCH: 4.02.3+mingw64c
-      OCAML_VERSION: 4.02
-    - OPAM_SWITCH: 4.06.1+mingw64c
-      OCAML_VERSION: 4.06
-
-init:
-  - "echo System architecture: %PLATFORM%"
+  - OCAML_BRANCH: 4.02
+  - OCAML_BRANCH: 4.06
 
 install:
-  - ps: iex ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/$env:FORK_USER/ocaml-ci-scripts/$env:FORK_BRANCH/appveyor-install.ps1"))
+- appveyor DownloadFile "https://raw.githubusercontent.com/Chris00/ocaml-appveyor/master/install_ocaml.cmd" -FileName "C:\install_ocaml.cmd"
+- C:\install_ocaml.cmd
 
 build_script:
-  - call %CYG_ROOT%\bin\bash.exe -l %APPVEYOR_BUILD_FOLDER%\appveyor-opam.sh
-  - call %CYG_ROOT%\bin\bash.exe -lc "cd c:/projects/rincewind && eval `opam config env` && opam install -y jbuilder cppo && jbuilder build rincewind.exe"
+- cd "%APPVEYOR_BUILD_FOLDER%"
+- jbuilder install -y cppo
+- jbuilder build -p rincewind.exe
 
 after_build:
   - cmd: mkdir _build\final
-  - cmd: copy _build\default\rincewind.exe _build\final\rincewind_w%OCAML_VERSION%-%RW_VERSION%.exe
+  - cmd: copy _build\default\rincewind.exe _build\final\rincewind_w%OCAML_BRANCH%-%RW_VERSION%.exe
 
 artifacts:
   - path: _build\final\*.exe
