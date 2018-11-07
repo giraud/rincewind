@@ -2,7 +2,6 @@ environment:
   RW_VERSION: 0.4-dev
   PACKAGE: "rincewind"
   matrix:
-  - OCAML_BRANCH: 4.02
   - OCAML_BRANCH: 4.06
 
 install:
