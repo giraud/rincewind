@@ -8,8 +8,6 @@ environment:
   CYG_ROOT: C:\cygwin64
   PACKAGE: "rincewind"
   matrix:
-    - OPAM_SWITCH: 4.02.3+mingw64c
-      OCAML_VERSION: 4.02
     - OPAM_SWITCH: 4.06.1+mingw64c
       OCAML_VERSION: 4.06
 
