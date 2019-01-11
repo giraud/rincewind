@@ -18,4 +18,4 @@ let format_resolved_item ~kind ~loc ~path ~name ~typ =
     Printf.printf "%s|%s|%s|%s|%s\n" kind_name (format_location loc) path name (clean_type typ)
 
 let format_open {o_loc; o_name; o_items; _} =
-    Printf.printf "O|%s|%s|%s\n" (format_location o_loc) o_name (Util.join_list ", " !o_items)
+    Printf.printf "O|%s|%s|%s\n" (format_location o_loc) o_name (Util.List.join ", " !o_items)

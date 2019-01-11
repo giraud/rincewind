@@ -23,3 +23,6 @@ let string_of_entry_kind k =
 
 let read_type typ =
     Format.asprintf "%a" Printtyp.type_scheme typ
+
+let dump_type_declaration id td =
+    Format.asprintf "%a" (Printtyp.type_declaration id) td
