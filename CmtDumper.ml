@@ -43,13 +43,35 @@ let dump_pos { Lexing.pos_fname; pos_lnum; pos_bol; pos_cnum; } =
 let dump_loc { Location.loc_start; loc_end; loc_ghost } =
   "<loc:" ^ (dump_pos loc_start) ^ ":" ^ (dump_pos loc_end) ^ ":" ^ (string_of_bool loc_ghost) ^ ">"
 
+let dump_value_description id vd(*{ val_type; val_kind; val_loc; val_attributes }*) =
+  Format.asprintf "%a" (Printtyp.value_description id) vd
+
+let dump_signature_item si = match si with
+  | Sig_value (id, vd(*value_description*)) -> dump_value_description id vd
+  | Sig_type (id, td(*type_declaration*), rec_status(*rs*)) -> "Sig_type"
+  | Sig_typext (id, ec, es) -> "Sig_typext"
+  | Sig_module (id, md, rs) -> "Sig_module"
+  | Sig_modtype (id, md) -> "Sig_modtype"
+  | Sig_class (id, cd, rs) -> "Sig_class"
+  | Sig_class_type (id, ctd, rs) -> "Sig_class_type"
+
+let dump_module_type mt = match mt with
+  | Mty_ident pa -> dump_path pa
+  | Mty_signature sil -> Util.List.dump (dump_signature_item) sil
+  | Mty_functor _(*Ident.t * module_type option * module_type*) -> "FUNCTOR"
+  | Mty_alias _(*alias_presence * Path.t*) -> "ALIAS"
+
+let dump_module_declaration {md_type(*module_type*); md_attributes(*Parsetree.attributes*); md_loc(*Location.t*) } =
+    dump_module_type md_type
+
+(* *)
 let rec dump_summary s = match s with
   | Env.Env_empty -> ""
-  | Env_value _(*(summary, Ident.t * value_description)*) -> "value"
+  | Env_value (su, id, vd(*value_description*)) -> "<value:" ^ (dump_value_description id vd)^ "> " ^ (dump_summary su)
   | Env_type (su, id, td) -> "<" ^ (RwTypes.dump_type_declaration id td) ^ "> " ^ (dump_summary su)
   | Env_extension (su, id, ec) -> "<extension:" ^ (dump_ident id) ^ "> " ^ (dump_summary su)
-  | Env_module _ (* summary * Ident.t * module_declaration *) -> "module"
-  | Env_modtype _ (* summary * Ident.t * modtype_declaration *) -> "modtype"
+  | Env_module (su, id, md(*module_declaration*)) -> "<module:" ^ (dump_ident id) ^ ":" ^ (dump_module_declaration md) ^ "> " ^ (dump_summary su)
+  | Env_modtype _ (* summary * Ident.t * modtype_declaration *) -> "Env_modtype"
   | Env_class _ (* summary * Ident.t * class_declaration *) -> "class"
   | Env_cltype _ (* summary * Ident.t * class_type_declaration *) -> "cltype"
   | Env_open (su(*summary*), pa(*Path.t*)) -> "<open:" ^ (dump_path pa) ^ "> " ^ (dump_summary su)
@@ -70,7 +92,7 @@ let rec read_pattern_desc pat_desc(*pattern_desc*) =
     | Tpat_var (ident, s) -> ident.name
     | Tpat_alias (pattern, ident, loc) -> ident.name
     | Tpat_constant (c) -> "_Constant_"
-    | Tpat_tuple (patternl) -> Util.join_list ", " (List.map (fun p -> read_pattern_desc p.pat_desc) patternl)
+    | Tpat_tuple (patternl) -> Util.List.join ", " (List.map (fun p -> read_pattern_desc p.pat_desc) patternl)
     | Tpat_construct (loc, constr_desc, patternl) -> "_Constr_"
     | Tpat_variant (label, pattern, row_desc) -> "_Variant_"
     | Tpat_record (rl, flag) -> "_Record_"
@@ -146,21 +168,27 @@ and read_value_binding qname opens {vb_pat; vb_expr; vb_attributes; vb_loc} =
     Formatter.format_resolved_item ~kind:Value ~loc:vb_pat.pat_loc ~path:qname ~name:name ~typ:(RwTypes.read_type pat_type);
     read_expression (Util.path qname name) opens vb_expr
 
-(**
- Iterate on parsedtree
- *)
-let rec read_structure_item qname opens {str_desc(*structure_item_desc*); _} =
+let rec dump_structure_item opens {str_desc(*structure_item_desc*); _} =
     let read_module_expression qname {mod_desc} =
         match mod_desc with
-            | Tmod_structure {str_items; _} -> List.iter (read_structure_item qname opens) str_items
+            | Tmod_structure {str_items; _} -> List.iter (dump_structure_item opens) str_items
             | _ -> () in
 
     match str_desc with
         | Tstr_open {open_path; open_override; open_loc; open_attributes} -> opens := {o_name=(Path.name open_path); o_stamp=(Path.head open_path).stamp; o_loc=open_loc; o_items = ref [] } :: !opens
-        | Tstr_eval (ee, ea) -> read_expression qname opens ee
-        | Tstr_value (rec_flag, vbl) -> List.iter (read_value_binding qname opens) vbl
-        | Tstr_module {mb_id; mb_expr; mb_loc} -> read_module_expression (Util.path qname mb_id.name) mb_expr
+        | Tstr_eval (ee, ea) -> read_expression "" opens ee
+        | Tstr_value (rec_flag, vbl) -> List.iter (read_value_binding "" opens) vbl
+        | Tstr_module {mb_id; mb_expr; mb_loc} -> read_module_expression (Util.path "" mb_id.name) mb_expr
         | _ -> ()
+
+
+(* typedtree.ml/structure {
+      str_items : structure_item list;
+      str_type : Types.signature;
+      str_final_env : Env.t; }
+*)
+let dump_implementation opens {str_items; str_type; str_final_env} =
+    Printf.printf "str_final_env: %s\n" (dump_summary (Env.summary str_final_env))
 
 let dump_cmt cmt =
     let opens = ref [] in
@@ -180,6 +208,7 @@ let dump_cmt cmt =
       cmt_use_summaries      (* bool *);
     } = cmt in
 
+    Printf.printf "---META---\n\n";
     Printf.printf "cmt_modname: %s\n" cmt_modname;
     Printf.printf "cmt_value_dependencies: %s\n" "xXx";
     Printf.printf "cmt_comments: [%s]\n" (Util.List.dump (fun (s, l) -> "'" ^ s ^ "':" ^ (dump_loc l)) cmt_comments);
@@ -192,10 +221,12 @@ let dump_cmt cmt =
     Printf.printf "cmt_interface_digest: %s\n" (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) cmt_interface_digest);
     Printf.printf "cmt_use_summaries: %b\n" cmt_use_summaries;
     Printf.printf "cmt_initial_env: %s\n" (dump_summary (Env.summary cmt_initial_env));
-
     Printf.printf "\n";
 
-    let _ = match cmt_annots with
-        | Implementation s -> List.iter (fun item -> (read_structure_item cmt_modname opens item)) s.str_items
-        | _ -> () in
-    List.iter Formatter.format_open !opens
+    Printf.printf "--TREE--\n\n";
+    match cmt_annots with
+        | Packed (si(*Types.signature *), sl(*string list*)) -> Printf.printf "Packed"
+        | Implementation s(*structure*) -> dump_implementation opens s
+        | Interface s(*signature*) -> Printf.printf "Interface"
+        | Partial_implementation bpa(*binary_part array*) -> Printf.printf "Partial_implementation"
+        | Partial_interface bpa(*binary_part array*) -> Printf.printf "Partial_interface"
