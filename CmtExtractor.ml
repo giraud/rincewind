@@ -31,7 +31,7 @@ let rec process_pattern_desc pat_desc =
 let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
   match exp_desc with
     | Texp_ident (path, _, {Types.val_type; val_loc; _}) ->
-        Printf.printf "Id|%s|%s|%s\n" (Formatter.format_path path) (Formatter.format_location val_loc) (Formatter.format_type val_type)
+        Printf.printf "Id|%s|%s|%s\n" (Formatter.format_path path) (Formatter.format_location exp_loc) (Formatter.format_type val_type)
     | Texp_constant c -> ()
     | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
         List.iter (process_value_binding exp_env) vbl;
