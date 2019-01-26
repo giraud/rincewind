@@ -1,14 +1,32 @@
+open Printf
 open Typedtree
 open Types
 open RwTypes
 
 let incr ident = ident ^ "    "
 
+let stag indent name attrs children =
+    printf "%s<%s" indent name;
+    List.iter (fun (k,v) -> printf " %s=\"%s\"" k v) attrs;
+    printf ">\n";
+    (children (incr indent)) ;
+    printf "%s</%s>\n" indent name
+
+let tag indent name attrs =
+    printf "%s<%s" indent name;
+    List.iter (fun (k,v) -> printf " %s=\"%s\"" k v) attrs;
+    printf "/>\n"
+
+let atag indent name attr = printf "%s<%s val=\"%s\"/>\n" indent name attr
+let ttag indent name text = printf "%s<%s>%s</%s>\n" indent name text name
+let mtag indent name = atag indent "MISSING" name
+
+
 let dump_partial p = match p with | Partial -> "Partial" | Total -> "Total"
 
 let dump_rec_flag rf = match rf with | Asttypes.Nonrecursive -> "Nonrecursive" | Recursive -> "Recursive"
 
-let dump_type t = RwTypes.read_type t
+let dump_type t = Formatter.clean_type (RwTypes.read_type t)
 
 (*
  ident.mli / Ident.t
@@ -16,9 +34,6 @@ let dump_type t = RwTypes.read_type t
 *)
 let dump_ident i =
     Format.asprintf "%a" Printtyp.ident(*Ident.print*) i
-
-let dump_longident_loc {Asttypes.txt(*LongIdent.t*); loc(*Location.t*)} =
-    Format.asprintf "%a" Printtyp.longident txt
 
 (*
  path.mli / Path.t
@@ -40,7 +55,13 @@ let dump_pos { Lexing.pos_fname(*source file*); pos_lnum; pos_bol; pos_cnum; } =
 
 (* location.ml / Location.t { loc_start: position; loc_end: position; loc_ghost: bool } *)
 let dump_loc { Location.loc_start; loc_end; loc_ghost } =
-  "«loc:" ^ (dump_pos loc_start) ^ ":" ^ (dump_pos loc_end) ^ ":" ^ (string_of_bool loc_ghost) ^ "»"
+  (dump_pos loc_start) ^ ":" ^ (dump_pos loc_end) ^ ":" ^ (string_of_bool loc_ghost)
+
+let dump_longident_loc {Asttypes.txt(*LongIdent.t*); loc(*Location.t*)} =
+    (Format.asprintf "%a" Printtyp.longident txt) ^ "|" ^ (dump_loc loc)
+
+let dump_ast_loc {Asttypes.txt; loc} =
+    txt ^ "|" ^ (dump_loc loc)
 
 let dump_string_loc {Location.txt; loc} =
     txt ^ "|" ^ (dump_loc loc)
@@ -93,30 +114,20 @@ let print_type_scheme env typ =
 (**
  Extract the name of a pattern
  *)
-let rec read_pattern_desc pat_env pat_type pat_desc =
+let rec process_pattern_desc tab pat_env pat_type pat_desc =
   match pat_desc with
-    | Tpat_any -> "«tpat_any»"
+    | Tpat_any -> mtag tab "Tpat_any"
     | Tpat_var (i(*Ident.t*), sl(*string loc*)) ->
-        "«tpat_var:" ^ (dump_ident i) ^ "|" ^ (dump_string_loc sl) ^ "»"
-    | Tpat_alias (pattern, ident, loc) -> "«ALIAS»"
-    | Tpat_constant (c) -> "«CONSTANT»"
-    | Tpat_tuple (patternl) -> "«TUPLE»"
-    | Tpat_construct (loc, constr_desc, patternl) -> "«CONSTR»"
-    | Tpat_variant (label, pattern, row_desc) -> "«VARIANT»"
-    | Tpat_record (rl, flag) -> "«RECORD»"
-    | Tpat_array (patternl) -> "«ARRAY»"
-    | Tpat_or (pattern, pattern', row_desc) -> "«OR»"
-    | Tpat_lazy (pattern) -> "«LAZY»"
-
-let print_value_binding_pattern indent {pat_desc; pat_loc; pat_extra; pat_type; pat_env; pat_attributes} =
-  Printf.printf "%svb_pat %s " indent (dump_loc pat_loc);
-  Printf.printf "%s " (read_pattern_desc pat_env pat_type pat_desc);
-  Printf.printf "<type:%s|<>|%s> " (Formatter.clean_type (RwTypes.read_type pat_type)) (Formatter.clean_type (print_type_scheme pat_env pat_type));
-  Printf.printf "<extra:%s> " "«EXTRA»";
-  (* attributes are metadata *)
-  Printf.printf "<attrs:%s> " (Util.List.dump (fun (sl, payload) -> "«ATTR»") pat_attributes);
-  Printf.printf "\n";
-  Printf.printf "%sENV: %s\n" (incr indent) (*(dump_env pat_env)*)"__ENV__"
+        tag tab "Tpat_var" [("ident", dump_ident i); ("string_loc", dump_string_loc sl)]
+    | Tpat_alias (pattern, ident, loc) -> mtag tab "Tpat_alias"
+    | Tpat_constant (c) ->  mtag tab "Tpat_constant"
+    | Tpat_tuple (patternl) -> mtag tab "Tpat_tuple"
+    | Tpat_construct (loc, constr_desc, patternl) -> mtag tab "Tpat_construct"
+    | Tpat_variant (label, pattern, row_desc) -> mtag tab "Tpat_variant"
+    | Tpat_record (rl, flag) -> mtag tab "Tpat_record"
+    | Tpat_array (patternl) -> mtag tab "Tpat_array"
+    | Tpat_or (pattern, pattern', row_desc) -> mtag tab "Tpat_or"
+    | Tpat_lazy (pattern) -> mtag tab "Tpat_lazy"
 
 let dump_value_kind kind =
     let k = match kind with
@@ -129,129 +140,143 @@ let dump_value_kind kind =
     in
     "«kind:" ^ k ^ "»"
 
-let print_value_description indent { val_type; val_kind; val_loc; val_attributes } =
-    Printf.printf "%svd:: %s loc:%s type:%s\n" indent (dump_value_kind val_kind) (dump_loc val_loc) (dump_type val_type)
+let process_value_description tab { val_type; val_kind; val_loc; val_attributes } =
+    tag tab "value_description" [("val_kind", dump_value_kind val_kind); ("val_loc", dump_loc val_loc); ("val_type", dump_type val_type); ("val_attributes", "__")]
 
 let rec print_case indent {c_lhs(*pattern*); c_guard(*expression option*); c_rhs(*expression*)} =
     Printf.printf "%slhs\n" indent;
     Printf.printf "%sguard\n" indent;
-    print_expression indent c_rhs
+    process_expression indent c_rhs
 
-and print_expression indent { exp_desc; exp_loc; exp_extra; exp_type; exp_env; exp_attributes } =
-    Printf.printf "%sexpression %s\n" indent (dump_loc exp_loc);
-    let indent' = incr indent in
-        (*dump_env exp_env;*)
-        match exp_desc with
-        | Texp_ident (p(*Path.t*), lil(*Longident.t loc*), vd(*Types.value_description*)) ->
-            Printf.printf "%sTexp_ident path:%s longidentloc:%s\n" indent' (dump_path p) (dump_longident_loc lil);
-            print_value_description indent' vd
-        | Texp_constant c(*constant*) ->
-            Printf.printf "%sTexp_constant\n" indent'
-        | Texp_let _(*rec_flag * value_binding list * expression*) ->
-            Printf.printf "%sTexp_let\n" indent'
-        | Texp_function (lb(*label*), cl(*case list*), pa(*partial*)) ->
-            Printf.printf "%sTexp_function <label:%s> <partial:%s>\n" indent' lb (dump_partial pa);
-            Printf.printf "%scases:\n" indent';
-            List.iter (print_case (incr indent')) cl
-        | Texp_apply (e(*expression*),  leol(*(label * expression option * optional) list*)) ->
-            Printf.printf "%sTexp_apply\n" indent';
-            print_expression indent' e;
-            List.iter (fun (label, eo, o) ->
-                Printf.printf "%s«label:%s»\n" (incr indent') label;
-                match eo with
-                | None -> Printf.printf "%s«expression:NONE»\n" indent'
-                | Some e -> print_expression (incr indent') e
-            ) leol
-        | Texp_match (e(*expression*), cl(*case list*), cl'(*case list*), pa(*partial*)) ->
-            Printf.printf "%sTexp_match <%s>\n" indent' (dump_partial pa);
-            print_expression indent' e;
-            List.iter (print_case (incr indent')) cl;
-            List.iter (print_case (incr indent')) cl';
-        | Texp_try _(*expression * case list*) -> Printf.printf "Texp_try"
-        | Texp_tuple _(*expression list*) -> Printf.printf "Texp_tuple"
-        | Texp_construct (lil(*Longident.t loc*), cd(*constructor_description*), el(*expression list*)) ->
-            Printf.printf "%sTexp_construct «id:%s»\n" indent' (dump_longident_loc lil);
-            List.iter (print_expression (incr indent')) el
-        | Texp_variant _(*label * expression option*) -> Printf.printf "Texp_variant"
-        | Texp_record _(* (Longident.t loc * label_description * expression) list * expression option*) -> Printf.printf "Texp_record"
-        | Texp_field _(*expression * Longident.t loc * label_description*) -> Printf.printf "Texp_field"
-        | Texp_setfield _(*expression * Longident.t loc * label_description * expression*) -> Printf.printf "Texp_setfield"
-        | Texp_array _(*expression list*) -> Printf.printf "Texp_array"
-        | Texp_ifthenelse _(*expression * expression * expression option*) -> Printf.printf "Texp_ifthenelse"
-        | Texp_sequence _(*expression * expression*) -> Printf.printf "Texp_sequence"
-        | Texp_while _(*expression * expression*) -> Printf.printf "Texp_while"
-        | Texp_for _(* Ident.t * Parsetree.pattern * expression * expression * direction_flag * expression*) -> Printf.printf "Texp_for"
-        | Texp_send _(*expression * meth * expression option*) -> Printf.printf "Texp_send"
-        | Texp_new _(*Path.t * Longident.t loc * Types.class_declaration*) -> Printf.printf "Texp_new"
-        | Texp_instvar _(*Path.t * Path.t * string loc*) -> Printf.printf "Texp_instvar"
-        | Texp_setinstvar _(*Path.t * Path.t * string loc * expression*) -> Printf.printf "Texp_setinstvar"
-        | Texp_override _(*Path.t * (Path.t * string loc * expression) list*) -> Printf.printf "Texp_override"
-        | Texp_letmodule _(*Ident.t * string loc * module_expr * expression*) ->
-            Printf.printf "%sTexp_letmodule\n" indent'
-        | Texp_assert _(*expression*) -> Printf.printf "Texp_assert"
-        | Texp_lazy _(*expression*) -> Printf.printf "Texp_lazy"
-        | Texp_object _(*class_structure * string list*) -> Printf.printf "Texp_object"
-        | Texp_pack _(*module_expr*) -> Printf.printf "Texp_pack"
+and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; exp_attributes } =
+(*    Printf.printf "%sexpression %s\n" indent (dump_loc exp_loc);*)
+    match exp_desc with
+    | Texp_ident (p(*Path.t*), lil(*Longident.t loc*), vd(*Types.value_description*)) ->
+        stag tab "Texp_ident" [("path", dump_path p); ("exp_loc", dump_loc exp_loc); ("longident_loc", dump_longident_loc lil)] (fun tab ->
+            process_value_description tab vd
+        )
+    | Texp_constant constant -> mtag tab "Texp_constant"
+    | Texp_let _(*rec_flag * value_binding list * expression*) -> mtag tab "Texp_let"
+    | Texp_function (label, case_list, partial) ->
+        stag tab "Texp_function" [("label", label); ("exp_loc", dump_loc exp_loc); ("partial", dump_partial partial)] (fun tab ->
+            stag tab "case_list" [] (fun tab -> List.iter (print_case tab) case_list)
+        )
+    | Texp_apply (expression,  leol(*(label * expression option * optional) list*)) ->
+        stag tab "Texp_apply" [("exp_loc", dump_loc exp_loc)] (fun tab ->
+            process_expression tab expression;
+            stag tab "label_expression_option_optional" [] (fun tab ->
+                List.iter (fun (label, eo, o) ->
+                    match eo with
+                    | None -> ttag tab "label" "no expression"
+                    | Some e -> process_expression tab e
+                ) leol
+            )
+        )
+    | Texp_match (expression, case_list, case_list', partial) ->
+        stag tab "Texp_match" [("exp_loc", dump_loc exp_loc); ("partial", dump_partial partial)] (fun tab ->
+            process_expression tab expression;
+            List.iter (print_case tab) case_list;
+            List.iter (print_case tab) case_list';
+        )
+    | Texp_try _(*expression * case list*) -> mtag tab "Texp_try"
+    | Texp_tuple _(*expression list*) -> mtag tab  "Texp_tuple"
+    | Texp_construct (lil(*Longident.t loc*), cd(*constructor_description*), el(*expression list*)) ->
+        stag tab "Texp_construct" [("exp_loc", dump_loc exp_loc); ("longident_loc", dump_longident_loc lil)] (fun tab ->
+            List.iter (process_expression tab) el
+        )
+    | Texp_variant _(*label * expression option*) -> mtag tab  "Texp_variant"
+    | Texp_record _(* (Longident.t loc * label_description * expression) list * expression option*) -> mtag tab  "Texp_record"
+    | Texp_field _(*expression * Longident.t loc * label_description*) -> mtag tab  "Texp_field"
+    | Texp_setfield _(*expression * Longident.t loc * label_description * expression*) -> mtag tab "Texp_setfield"
+    | Texp_array _(*expression list*) -> mtag tab "Texp_array"
+    | Texp_ifthenelse _(*expression * expression * expression option*) -> mtag tab "Texp_ifthenelse"
+    | Texp_sequence _(*expression * expression*) -> mtag tab "Texp_sequence"
+    | Texp_while _(*expression * expression*) -> mtag tab "Texp_while"
+    | Texp_for _(* Ident.t * Parsetree.pattern * expression * expression * direction_flag * expression*) -> mtag tab "Texp_for"
+    | Texp_send _(*expression * meth * expression option*) -> mtag tab "Texp_send"
+    | Texp_new _(*Path.t * Longident.t loc * Types.class_declaration*) -> mtag tab "Texp_new"
+    | Texp_instvar _(*Path.t * Path.t * string loc*) -> mtag tab "Texp_instvar"
+    | Texp_setinstvar _(*Path.t * Path.t * string loc * expression*) -> mtag tab "Texp_setinstvar"
+    | Texp_override _(*Path.t * (Path.t * string loc * expression) list*) -> mtag tab "Texp_override"
+    | Texp_letmodule _(*Ident.t * string loc * module_expr * expression*) -> mtag tab "Texp_letmodule"
+    | Texp_assert _(*expression*) -> mtag tab "Texp_assert"
+    | Texp_lazy _(*expression*) -> mtag tab "Texp_lazy"
+    | Texp_object _(*class_structure * string list*) -> mtag tab "Texp_object"
+    | Texp_pack _(*module_expr*) -> mtag tab "Texp_pack"
 
-let print_value_binding indent env {vb_pat; vb_expr; vb_attributes; vb_loc} =
-    Printf.printf "%svalue binding %s «VB_ATTRIBUTES»\n" indent (dump_loc vb_loc);
-    print_value_binding_pattern (incr indent) vb_pat;
-    print_expression (incr indent) vb_expr
+and process_value_binding_pattern tab {pat_desc; pat_loc; pat_extra; pat_type; pat_env; pat_attributes} =
+  stag tab "value_binding_pattern" [("pat_loc", dump_loc pat_loc); ("pat_type", Formatter.clean_type (print_type_scheme pat_env pat_type)); ("pat_attributes", "__"); ("pat_extra", "__"); ("pat_env", "__")] (fun tab ->
+      process_pattern_desc tab pat_env pat_type pat_desc
+  )
 
-let rec print_module_description indent env mod_desc =
+and process_value_binding tab parent_env {vb_pat; vb_expr; vb_attributes; vb_loc} =
+    stag tab "value_binding" [("vb_loc", dump_loc vb_loc); ("vb_attributes", "__")] (fun tab ->
+        process_value_binding_pattern tab vb_pat;
+        process_expression tab vb_expr
+    )
+
+and process_module_description tab env mod_desc =
     match mod_desc with
-    | Tmod_ident (pa(*Path.t*), il(*Longident.t loc*)) -> Printf.printf "%s%s" indent "Tmod_ident"
-    | Tmod_structure ({str_items; str_type; str_final_env}(*structure*)) ->
-        Printf.printf "%sstr_types: %s\n" indent (Util.List.dump (fun si -> dump_signature_item si) str_type);
-        Printf.printf "%sstr_items:\n" indent;
-        List.iter (fun item -> print_structure_item (incr indent) item) str_items
-    | Tmod_functor (i(*Ident.t*), sl(*string loc*), mto(*module_type option*),  me(*module_expr*)) -> Printf.printf "%s%s" indent "Tmod_functor"
-    | Tmod_apply (me(*module_expr*), me'(*module_expr*), mc(*module_coercion*)) -> Printf.printf "%s%s" indent "Tmod_apply"
-    | Tmod_constraint (me(*module_expr*), mt(*Types.module_type*), mtc(*module_type_constraint*), mc(*module_coercion*)) -> Printf.printf "%s%s" indent "Tmod_constraint"
+    | Tmod_ident (pa(*Path.t*), il(*Longident.t loc*)) ->
+        mtag tab "Tmod_ident"
+    | Tmod_structure ({ str_items; str_type; str_final_env }) ->
+        stag tab "Tmod_structure" [] (fun tab ->
+            stag tab "str_type" [] (fun tab -> (List.iter (fun i -> atag tab "str_item" (dump_signature_item i)) str_type));
+            stag tab "str_items" [] (fun tab -> List.iter (process_structure_item tab) str_items)
+        )
+    | Tmod_functor (i(*Ident.t*), sl(*string loc*), mto(*module_type option*),  me(*module_expr*)) ->
+        mtag tab "Tmod_functor"
+    | Tmod_apply (me(*module_expr*), me'(*module_expr*), mc(*module_coercion*)) ->
+        mtag tab "Tmod_apply"
+    | Tmod_constraint (me(*module_expr*), mt(*Types.module_type*), mtc(*module_type_constraint*), mc(*module_coercion*)) ->
+        mtag tab "Tmod_constraint"
     | Tmod_unpack (e(*expression*), mt(*Types.module_type*)) ->
-        Printf.printf "%s%s" indent "Tmod_unpack"
+        mtag tab "Tmod_unpack"
 
-and print_module_binding indent env {mb_id; mb_name; mb_expr; mb_attributes; mb_loc} =
-    Printf.printf "%smodule_binding: «id:%s» «loc:%s» «attrs:%s» " indent (dump_ident mb_id) (dump_loc mb_loc) "ATTR";
-    let { mod_desc; mod_loc; mod_type; mod_env; mod_attributes; } = mb_expr in
-    Printf.printf "«mod_type:%s» «mod_attrs:%s»\n" (dump_module_type mod_type) "ATTRS";
-    print_module_description indent mod_env mod_desc;
-    Printf.printf "\n"
+and process_module_binding tab env {mb_id; mb_name; mb_expr; mb_attributes; mb_loc} =
+    stag tab "module_binding" [("id", dump_ident mb_id); ("mb_name", dump_string_loc mb_name); ("mb_loc", dump_loc mb_loc); ("mb_attributes", "__")] (fun tab ->
+        let { mod_desc; mod_loc; mod_type; mod_env; mod_attributes } = mb_expr in
+            atag tab "mod_env" "__";
+            atag tab "mod_type" (dump_module_type mod_type);
+            atag tab "mod_loc" (dump_loc mod_loc);
+            process_module_description tab mod_env mod_desc
+    )
 
-and print_open_description indent {open_path; open_txt; open_override; open_loc; open_attributes} =
-    Printf.printf "%s%s path:%s OPEN_TXT OPEN_OVERRIDE OPEN_ATTRIBUTES \n" indent (dump_loc open_loc) (dump_path open_path)
+and process_open_description tab {open_path; open_txt; open_override; open_loc; open_attributes} =
+    tag tab "open_description" [("open_path", (dump_path open_path)); ("open_loc", dump_loc open_loc); ("open_txt", "__"); ("open_override", "__"); ("open_attributes", "__")]
 
-and print_structure_item indent {str_desc; str_loc; str_env} =
-    Printf.printf "%sstr_item: «ENV» %s " indent (dump_loc str_loc);
-
+and process_structure_item tab {str_desc; str_loc; str_env} =
     match str_desc with
-    | Tstr_eval (e(*expression*), a(*attributes*)) -> Printf.printf "Tstr_eval\n"
+    | Tstr_eval (e(*expression*), a(*attributes*)) -> mtag tab "Tstr_eval"
     | Tstr_value (rf(*rec_flag*), vbl(*value_binding list*)) ->
-        Printf.printf "Tstr_value %s\n" (dump_rec_flag rf);
-        List.iter (print_value_binding (incr indent) str_env) vbl
-    | Tstr_primitive (vd(*value_description*)) -> Printf.printf "Tstr_primitive\n"
-    | Tstr_type (tdl(*type_declaration list*)) -> Printf.printf "Tstr_type\n"
-    | Tstr_typext (te(*type_extension*)) -> Printf.printf "Tstr_typext\n"
-    | Tstr_exception (ec(*extension_constructor*)) -> Printf.printf "Tstr_exception\n"
+        stag tab "str_item" [("m", "Tstr_value"); ("str_loc", dump_loc str_loc); ("str_env", "__"); ("rec_flag", dump_rec_flag rf)] (fun tab ->
+            List.iter (process_value_binding tab str_env) vbl
+        );
+    | Tstr_primitive (vd(*value_description*)) -> mtag tab "Tstr_primitive"
+    | Tstr_type (tdl(*type_declaration list*)) -> mtag tab "Tstr_type"
+    | Tstr_typext (te(*type_extension*)) -> mtag tab "Tstr_typext"
+    | Tstr_exception (ec(*extension_constructor*)) -> mtag tab "Tstr_exception"
     | Tstr_module (mb(*module_binding*)) ->
-        Printf.printf "Tstr_module\n";
-        print_module_binding (incr indent) str_env mb
-    | Tstr_recmodule (mbl(*module_binding list*)) -> Printf.printf "Tstr_recmodule\n"
-    | Tstr_modtype (mtd(*module_type_declaration*)) -> Printf.printf "Tstr_modtype\n"
-    | Tstr_open (od(*open_description*)) ->
-        Printf.printf "Tstr_open\n";
-        print_open_description (incr indent) od
-    | Tstr_class (cl(*(cd(*class_declaration*), sl(*string list*), vf(*virtual_flag*)) list*)) -> Printf.printf "Tstr_class\n"
-    | Tstr_class_type (ctl(*(i(*Ident.t*), sl(*string loc*), ctd(*class_type_declaration*)) list*)) -> Printf.printf "Tstr_class_type\n"
-    | Tstr_include (id(*include_declaration*)) -> Printf.printf "Tstr_include\n"
-    | Tstr_attribute (a(*attribute*)) -> Printf.printf "Tstr_attribute\n"
+        stag tab "str_item" [("m", "Tstr_module"); ("str_loc", dump_loc str_loc); ("str_env", "__")] (fun tab ->
+            process_module_binding tab str_env mb
+        );
+    | Tstr_recmodule (mbl(*module_binding list*)) -> mtag tab "Tstr_recmodule"
+    | Tstr_modtype (mtd(*module_type_declaration*)) -> mtag tab "Tstr_modtype"
+    | Tstr_open od(*open_description*) ->
+        stag tab "str_item" [("m", "Tstr_open"); ("str_loc", dump_loc str_loc); ("str_env", "__")] (fun tab ->
+            process_open_description tab od
+        );
+    | Tstr_class (cl(*(cd(*class_declaration*), sl(*string list*), vf(*virtual_flag*)) list*)) -> mtag tab "Tstr_class"
+    | Tstr_class_type (ctl(*(i(*Ident.t*), sl(*string loc*), ctd(*class_type_declaration*)) list*)) -> mtag tab "Tstr_class_type"
+    | Tstr_include (id(*include_declaration*)) -> mtag tab "Tstr_include"
+    | Tstr_attribute (a(*attribute*)) -> mtag tab "Tstr_attribute"
 
-let print_implementation {str_items; str_type; str_final_env} =
-    Printf.printf "str_final_env: %s\n" (dump_summary (Env.summary str_final_env));
-    Printf.printf "str_types: %s\n" (Util.List.dump (fun si -> dump_signature_item si) str_type);
-    Printf.printf "str_items:\n";
-    List.iter (fun item -> print_structure_item "  " item) str_items;
-    Printf.printf "\n"
+let process_implementation tab {str_items; str_type; str_final_env} =
+    mtag tab "str_final_env" (* (dump_summary (Env.summary str_final_env)) *);
+    mtag tab "str_types" (* (Util.List.dump (fun si -> dump_signature_item si) str_type) *);
+    stag tab "str_items" [] (fun tab ->
+        List.iter (fun item -> process_structure_item tab item) str_items;
+    )
 
 let print_cmt cmt =
     let {
@@ -270,25 +295,28 @@ let print_cmt cmt =
       cmt_use_summaries      (* bool *);
     } = cmt in
 
-    Printf.printf "---META---\n\n";
-    Printf.printf "cmt_modname: %s\n" cmt_modname;
-    Printf.printf "cmt_value_dependencies: %s\n" "xXx";
-    Printf.printf "cmt_comments: [%s]\n" (Util.List.dump (fun (s, l) -> "'" ^ s ^ "':" ^ (dump_loc l)) cmt_comments);
-    Printf.printf "cmt_args: [%s]\n" (Util.Array.join ", " cmt_args);
-    Printf.printf "cmt_sourcefile: %s\n" (Util.Option.getWithDefault "" cmt_sourcefile);
-    Printf.printf "cmt_builddir: %s\n" cmt_builddir;
-    Printf.printf "cmt_loadpath: [%s]\n" (Util.List.join ", " cmt_loadpath);
-    Printf.printf "cmt_source_digest: %s\n" (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) cmt_source_digest);
-    Printf.printf "cmt_imports: %s\n" (Util.List.dump (fun (s, d) -> "'" ^ s ^ "':" ^ (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) d)) cmt_imports);
-    Printf.printf "cmt_interface_digest: %s\n" (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) cmt_interface_digest);
-    Printf.printf "cmt_use_summaries: %b\n" cmt_use_summaries;
-    Printf.printf "cmt_initial_env: %s\n" (dump_env cmt_initial_env);
-    Printf.printf "\n";
+    stag "" "doc" [] (fun tab ->
+        stag tab "meta" [] (fun tab ->
+            ttag tab "cmt_modname" cmt_modname;
+            atag tab "cmt_value_dependencies" "__DEPS__";
+            stag tab "cmt_comments" [] (fun tab -> (List.iter (fun (s, l) -> tag tab "comment" [("val", s); ("loc", dump_loc l)]) cmt_comments));
+            stag tab "cmt_args" [] (fun tab -> Array.iter (atag tab "arg") cmt_args);
+            atag tab "cmt_sourcefile" (Util.Option.getWithDefault "" cmt_sourcefile);
+            atag tab "cmt_builddir" cmt_builddir;
+            atag tab "cmt_loadpath" (Util.List.join ", " cmt_loadpath);
+            atag tab "cmt_source_digest" (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) cmt_source_digest);
+            stag tab "cmt_imports" [] (fun tab -> List.iter (fun (s, d) -> atag tab "import" ("'" ^ s ^ "':" ^ (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) d))) cmt_imports);
+            atag tab "cmt_interface_digest" (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) cmt_interface_digest);
+            atag tab "cmt_use_summaries" (string_of_bool cmt_use_summaries);
+            atag tab "cmt_initial_env" (dump_env cmt_initial_env);
+        );
+        stag tab "tree" [] (fun tab ->
+            match cmt_annots with
+            | Packed (signature, string_list) -> mtag tab "Packed"
+            | Implementation structure -> process_implementation tab structure
+            | Interface signature -> mtag tab "Interface"
+            | Partial_implementation binary_part_array -> mtag tab "Partial_implementation"
+            | Partial_interface binary_part_array -> mtag tab "Partial_interface";
+        );
+    )
 
-    Printf.printf "--TREE--\n\n";
-    match cmt_annots with
-    | Packed (si(*Types.signature *), sl(*string list*)) -> Printf.printf "Packed"
-    | Implementation s(*structure*) -> print_implementation s
-    | Interface s(*signature*) -> Printf.printf "Interface"
-    | Partial_implementation bpa(*binary_part array*) -> Printf.printf "Partial_implementation"
-    | Partial_interface bpa(*binary_part array*) -> Printf.printf "Partial_interface"
