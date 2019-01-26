@@ -6,11 +6,10 @@
 *)
 let print_info dump fname =
     let cmio, cmto = Cmt_format.read fname in
-    match cmio, cmto with
-        | _, Some cmt when dump -> CmtDumper.print_cmt cmt
-        | _, Some cmt -> CmtExtractor.read_cmt cmt
-        | Some cmi, None -> CmiExtractor.read_cmi cmi
-        | None, None -> Printf.printf "Can't read %s" fname;
+    match cmto with
+        | Some cmt when dump -> CmtDumper.print_cmt cmt
+        | Some cmt -> CmtExtractor.read_cmt cmt
+        | _ -> Printf.printf "Can't read %s" fname;
     Printf.printf "\n"
 
 module Driver = struct
