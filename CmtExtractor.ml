@@ -2,19 +2,10 @@ open Typedtree
 open Types
 open RwTypes
 
-(**
- Shortcut to read a type from an expression
- *)
-let read_etype {exp_type; _} =
-  RwTypes.read_type exp_type
-
-(**
- Extract the name of a pattern
- *)
 let rec process_pattern_desc pat_desc =
   match pat_desc with
     | Tpat_any -> "_Any_"
-    | Tpat_var (ident, {Location.txt; loc}) -> "Va|" ^ ident.name ^ "|" ^ (Formatter.format_location loc)
+    | Tpat_var (ident, {Location.txt; loc}) -> "Va|" ^ (Formatter.format_location loc) ^ "|" ^ ident.name
     | Tpat_alias (pattern, ident, loc) -> ident.name
     | Tpat_constant (c) -> "_Constant_"
     | Tpat_tuple (patternl) -> "TUPLE"
@@ -25,13 +16,13 @@ let rec process_pattern_desc pat_desc =
     | Tpat_or (pattern, pattern', row_desc) -> "_Or_"
     | Tpat_lazy (pattern) -> "_Lazy_"
 
-(**
- Extract interesting info from an expression
- *)
 let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
   match exp_desc with
     | Texp_ident (path, _, {Types.val_type; val_loc; _}) ->
-        Printf.printf "Id|%s|%s|%s\n" (Formatter.format_path path) (Formatter.format_location exp_loc) (Formatter.format_type val_type)
+        let {Location.loc_ghost; _} = exp_loc in
+        (match loc_ghost with
+        | true -> ()
+        | false -> Printf.printf "Id|%s|%s|%s\n" (Formatter.format_location exp_loc) (Formatter.format_path path) (Formatter.format_type val_type))
     | Texp_constant c -> ()
     | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
         List.iter (process_value_binding exp_env) vbl;
@@ -54,10 +45,16 @@ let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
     | Texp_construct (cloc, cd, expression_list) ->
         List.iter process_expression expression_list
     | Texp_variant (l, eo) -> ()
-    | Texp_record (fields, _(*expression option*)) ->
-        List.iter (fun (_, ld, e) -> process_expression e) fields;
-    | Texp_field (fe, floc, fd) ->
-        process_expression fe
+    | Texp_record  (fields, expression_option) ->
+        List.iter (fun (lil, {lbl_name; lbl_arg; _}, field_expression) ->
+            Printf.printf "Rf|%s|%s|%s\n" (Formatter.format_location exp_loc) lbl_name (Formatter.format_type lbl_arg);
+            process_expression field_expression
+        ) fields ;
+        (match expression_option with
+           | None -> ()
+           | Some e -> process_expression e)
+    | Texp_field (expression, longident_loc, label_description) ->
+        process_expression expression
     | Texp_setfield (e, loc, ld, e') -> ()
     | Texp_array (el) -> ()
     | Texp_ifthenelse (e, e', eo) -> ()

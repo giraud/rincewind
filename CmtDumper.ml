@@ -204,12 +204,15 @@ and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; ex
             List.iter (process_expression tab) el
         )
     | Texp_variant _(*label * expression option*) -> mtag tab  "Texp_variant"
-    | Texp_record (llel(*(Longident.t loc * label_description * expression) list*), expression_option) ->
+    | Texp_record (fields(*(Longident.t loc * label_description * expression) list*), expression_option) ->
         stag tab "Texp_record" [("exp_loc", dump_loc exp_loc)] (fun tab ->
             stag tab "longident_label_description_expression" [] (fun tab ->
                 List.iter (fun (lil, ld, e) ->
-                    process_expression tab e
-                ) llel
+                    stag tab "record_item" [("longident_loc", dump_longident_loc lil)] (fun tab ->
+                        process_label_description tab ld;
+                        process_expression tab e
+                    )
+                ) fields
             );
             match expression_option with
                 | None -> ()
@@ -221,7 +224,8 @@ and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; ex
             process_expression tab expression
         )
     | Texp_setfield _(*expression * Longident.t loc * label_description * expression*) -> mtag tab "Texp_setfield"
-    | Texp_array _(*expression list*) -> mtag tab "Texp_array"
+    | Texp_array (expression_list) ->
+        stag tab "Texp_array" [("exp_loc", dump_loc exp_loc)] (fun tab -> List.iter (process_expression tab) expression_list)
     | Texp_ifthenelse _(*expression * expression * expression option*) -> mtag tab "Texp_ifthenelse"
     | Texp_sequence _(*expression * expression*) -> mtag tab "Texp_sequence"
     | Texp_while _(*expression * expression*) -> mtag tab "Texp_while"

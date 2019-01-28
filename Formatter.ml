@@ -1,5 +1,4 @@
 open Location
-open Lexing
 open RwTypes
 
 let r = Str.regexp "\n"
@@ -10,6 +9,9 @@ let clean_type str =
 let format_type t =
     clean_type (RwTypes.read_type t)
 
+let format_etype {Typedtree.exp_type; _} =
+  RwTypes.read_type exp_type
+
 let format_path p =
     Printtyp.string_of_path p
 
@@ -17,7 +19,7 @@ let format_ident i =
     Format.asprintf "%a" Printtyp.ident(*Ident.print*) i
 
 let format_position pos =
-  (string_of_int pos.pos_lnum) ^ "." ^ (string_of_int (pos.pos_cnum - pos.pos_bol(*begining of line*) + 1(*idea numerotation*)))
+  (string_of_int pos.Lexing.pos_lnum) ^ "." ^ (string_of_int (pos.pos_cnum - pos.pos_bol(*begining of line*) + 1(*idea numerotation*)))
 
 let format_location {loc_start; loc_end; loc_ghost} =
   (format_position loc_start) ^ "," ^ (format_position loc_end)
