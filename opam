@@ -11,5 +11,5 @@ build: [
   [ "jbuilder" "build" "rincewind.exe" ]
 ]
 depends: [
-  "jbuilder" {build & >= "1.0+beta14"}
+  "jbuilder" {= "1.2.1"}
 ]
