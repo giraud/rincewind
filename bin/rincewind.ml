@@ -7,8 +7,8 @@
 let print_info dump fname =
     let cmio, cmto = Cmt_format.read fname in
     match cmto with
-        | Some cmt when dump -> CmtDumper.print_cmt cmt
-        | Some cmt -> CmtExtractor.read_cmt cmt
+        | Some cmt when dump -> Lib.CmtDumper.print_cmt cmt
+        | Some cmt -> Lib.CmtExtractor.read_cmt cmt
         | _ -> Printf.printf "Can't read %s" fname;
     Printf.printf "\n"
 

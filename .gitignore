@@ -1,4 +1,6 @@
 *.iml
 .idea/
+esy.lock/
+_esy/
 _build/
 .merlin

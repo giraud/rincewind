@@ -1,0 +1,6 @@
+(executable
+  (name rincewind)
+  (public_name rincewind)
+  (libraries lib)
+  (modes native)
+)
