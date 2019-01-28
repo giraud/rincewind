@@ -6,22 +6,11 @@ platform:
 environment:
   HOME: C:\Users\appveyor
   RW_VERSION: 0.4-dev
-  FORK_USER: ocaml
-  FORK_BRANCH: master
-  CYG_ROOT: C:\cygwin64
-  PACKAGE: "rincewind"
-  matrix:
-    - OPAM_SWITCH: 4.02.3+mingw64c
-      OCAML_VERSION: 4.02
 
 cache:
   - C:\Users\appveyor\.esy
   - _esy
   - node_modules
-
-init:
-  - "echo System architecture: %PLATFORM%"
-  - "echo Build folder is: %APPVEYOR_BUILD_FOLDER%"
 
 install:
   # The x64 is required as a workaround for esy/esy#412
@@ -33,7 +22,7 @@ install:
 build_script:
   - mkdir _build\final
   - esy build
-  - esy exec-command --include-build-env Rincewind cp "#{self.target_dir}/default/bin/rincewind.exe" _build\final\rincewind_w%OCAML_VERSION%-%RW_VERSION%.exe
+  - esy exec-command --include-build-env rincewind cp "#{self.target_dir}/default/bin/rincewind.exe" _build\final\rincewind_w%OCAML_VERSION%-%RW_VERSION%.exe
 
 artifacts:
   - path: _build\final\*.exe
@@ -45,6 +34,8 @@ deploy:
     secure: KVeTN/0Ppyeluj5I28K9COpyZp/yKembWiEy9PyQawdfWXFwVlZXwOI5VZ/6QCZP
   subject: giraud
   repo: ocaml
+  on:
+      branch: 4.02
   package: rincewind
   version: ${rw_version}
   publish: true
