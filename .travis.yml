@@ -1,4 +1,6 @@
-language: c
+language: node_js
+node_js: 8
+
 sudo: required
 
 os:
@@ -11,18 +13,19 @@ env:
   matrix:
     - OCAML_VERSION=4.02
 
-before_install:
-  - wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-ocaml.sh
+cache:
+  timeout: 360
+  directories:
+    - "$HOME/.esy"
+    -
 install:
-  - bash -ex .travis-ocaml.sh
+  - travis_retry npm install -g esy
+  - travis_wait esy install
 
-before_script:
-  - opam install -y cppo
-  - opam install -y jbuilder
 script:
-  - eval `opam config env` && jbuilder build rincewind.exe
+  - travis_wait 40 esy build
   - mkdir -p _build/final
-  - mv _build/default/rincewind.exe _build/final/rincewind_$(echo $TRAVIS_OS_NAME | cut -c1)${OCAML_VERSION}-${RW_VERSION}.exe
+  - esy exec-command --include-build-env Rincewind cp "#{self.target_dir}/default/bin/rincewind.exe" _build/final/rincewind_w%OCAML_VERSION%-%RW_VERSION%.exe
 
 deploy:
   provider: bintray
