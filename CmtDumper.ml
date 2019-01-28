@@ -143,10 +143,23 @@ let dump_value_kind kind =
 let process_value_description tab { val_type; val_kind; val_loc; val_attributes } =
     tag tab "value_description" [("val_kind", dump_value_kind val_kind); ("val_loc", dump_loc val_loc); ("val_type", dump_type val_type); ("val_attributes", "__")]
 
-let rec print_case indent {c_lhs(*pattern*); c_guard(*expression option*); c_rhs(*expression*)} =
-    Printf.printf "%slhs\n" indent;
-    Printf.printf "%sguard\n" indent;
-    process_expression indent c_rhs
+let rec print_case tab {c_lhs(*pattern*); c_guard(*expression option*); c_rhs(*expression*)} =
+    let {pat_desc; pat_loc; pat_extra; pat_type; pat_env; pat_attributes} = c_lhs in
+        stag tab "c_lhs" [("pat_loc", dump_loc pat_loc); ("pat_env", "__"); ("pat_attributes", "__"); ("pat_extra", "__")] (fun tab -> process_pattern_desc tab pat_desc);
+    mtag tab "guard";
+    stag tab "c_rhs" [] (fun tab -> process_expression tab c_rhs)
+
+and process_label_description tab { lbl_name(* Short name *);
+                                        lbl_res;                 (* Type of the result *)
+                                        lbl_arg;                 (* Type of the argument *)
+                                        lbl_mut;              (* Is this a mutable field? *)
+                                        lbl_pos;                       (* Position in block *)
+                                        lbl_all;   (* All the labels in this type *)
+                                        lbl_repres;  (* Representation for this record *)
+                                        lbl_private;          (* Read-only field? *)
+                                        lbl_loc;
+                                        lbl_attributes } =
+    tag tab "label_description" [("lbl_name", lbl_name); ("lbl_loc", dump_loc lbl_loc); ("lbl_res", "__");("lbl_arg", dump_type lbl_arg); ("lbl_mut", "");("lbl_pos", "");("lbl_all", "");("lbl_repres", "");("lbl_private", "");]
 
 and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; exp_attributes } =
 (*    Printf.printf "%sexpression %s\n" indent (dump_loc exp_loc);*)
@@ -156,7 +169,13 @@ and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; ex
             process_value_description tab vd
         )
     | Texp_constant constant -> mtag tab "Texp_constant"
-    | Texp_let _(*rec_flag * value_binding list * expression*) -> mtag tab "Texp_let"
+    | Texp_let (rec_flag, value_binding_list, expression) ->
+        stag tab "Texp_let" [("exp_loc", dump_loc exp_loc); ("rec_flag", dump_rec_flag rec_flag)] (fun tab ->
+            stag tab "value_binding_list" [] (fun tab ->
+                List.iter (process_value_binding tab exp_env) value_binding_list
+            );
+            process_expression tab expression
+        )
     | Texp_function (label, case_list, partial) ->
         stag tab "Texp_function" [("label", label); ("exp_loc", dump_loc exp_loc); ("partial", dump_partial partial)] (fun tab ->
             stag tab "case_list" [] (fun tab -> List.iter (print_case tab) case_list)
@@ -185,8 +204,22 @@ and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; ex
             List.iter (process_expression tab) el
         )
     | Texp_variant _(*label * expression option*) -> mtag tab  "Texp_variant"
-    | Texp_record _(* (Longident.t loc * label_description * expression) list * expression option*) -> mtag tab  "Texp_record"
-    | Texp_field _(*expression * Longident.t loc * label_description*) -> mtag tab  "Texp_field"
+    | Texp_record (llel(*(Longident.t loc * label_description * expression) list*), expression_option) ->
+        stag tab "Texp_record" [("exp_loc", dump_loc exp_loc)] (fun tab ->
+            stag tab "longident_label_description_expression" [] (fun tab ->
+                List.iter (fun (lil, ld, e) ->
+                    process_expression tab e
+                ) llel
+            );
+            match expression_option with
+                | None -> ()
+                | Some e -> process_expression tab e
+        )
+    | Texp_field (expression, longident_loc, label_description) ->
+        stag tab "Texp_field" [("exp_loc", dump_loc exp_loc); ("longident_loc", dump_longident_loc longident_loc)] (fun tab ->
+            process_label_description tab label_description;
+            process_expression tab expression
+        )
     | Texp_setfield _(*expression * Longident.t loc * label_description * expression*) -> mtag tab "Texp_setfield"
     | Texp_array _(*expression list*) -> mtag tab "Texp_array"
     | Texp_ifthenelse _(*expression * expression * expression option*) -> mtag tab "Texp_ifthenelse"
