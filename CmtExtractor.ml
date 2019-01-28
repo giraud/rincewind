@@ -51,7 +51,8 @@ let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
         List.iter process_case cl';
     | Texp_try (e, cl) -> ()
     | Texp_tuple (el) -> ()
-    | Texp_construct (cloc, cd, cel) -> ()
+    | Texp_construct (cloc, cd, expression_list) ->
+        List.iter process_expression expression_list
     | Texp_variant (l, eo) -> ()
     | Texp_record (fields, _(*expression option*)) ->
         List.iter (fun (_, ld, e) -> process_expression e) fields;
@@ -89,14 +90,14 @@ and process_value_binding env {vb_pat; vb_expr; vb_attributes; vb_loc} =
 
 and process_module_description env mod_desc =
     match mod_desc with
-    | Tmod_ident (pa(*Path.t*), il(*Longident.t loc*)) -> Printf.printf "%s" "Tmod_ident"
+    | Tmod_ident (pa(*Path.t*), il(*Longident.t loc*)) -> Printf.printf "Tmod_ident"
     | Tmod_structure ({str_items; str_type; str_final_env}(*structure*)) ->
         List.iter (fun item -> process_structure_item item) str_items
     | Tmod_functor (i(*Ident.t*), sl(*string loc*), mto(*module_type option*),  me(*module_expr*)) -> Printf.printf "%s" "Tmod_functor"
     | Tmod_apply (me(*module_expr*), me'(*module_expr*), mc(*module_coercion*)) -> Printf.printf "%s" "Tmod_apply"
     | Tmod_constraint (me(*module_expr*), mt(*Types.module_type*), mtc(*module_type_constraint*), mc(*module_coercion*)) -> Printf.printf "%s" "Tmod_constraint"
     | Tmod_unpack (e(*expression*), mt(*Types.module_type*)) ->
-        Printf.printf "%s" "Tmod_unpack"
+        Printf.printf "Tmod_unpack"
 
 and process_module_binding env {mb_id; mb_name; mb_expr; mb_attributes; mb_loc} =
     let { mod_desc; mod_loc; mod_type; mod_env; mod_attributes; } = mb_expr in

@@ -4,17 +4,17 @@ open RwTypes
 
 let r = Str.regexp "\n"
 
+let clean_type str =
+  Str.global_replace r " " str
+
 let format_type t =
-    RwTypes.read_type t
+    clean_type (RwTypes.read_type t)
 
 let format_path p =
     Printtyp.string_of_path p
 
 let format_ident i =
     Format.asprintf "%a" Printtyp.ident(*Ident.print*) i
-
-let clean_type str =
-  Str.global_replace r " " str
 
 let format_position pos =
   (string_of_int pos.pos_lnum) ^ "." ^ (string_of_int (pos.pos_cnum - pos.pos_bol(*begining of line*) + 1(*idea numerotation*)))
