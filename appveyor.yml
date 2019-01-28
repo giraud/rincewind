@@ -1,7 +1,10 @@
+image: Visual Studio 2017
+
 platform:
-  - x86
+  - x64
 
 environment:
+  HOME: C:\Users\appveyor
   RW_VERSION: 0.4-dev
   FORK_USER: ocaml
   FORK_BRANCH: master
@@ -11,20 +14,26 @@ environment:
     - OPAM_SWITCH: 4.02.3+mingw64c
       OCAML_VERSION: 4.02
 
+cache:
+  - C:\Users\appveyor\.esy
+  - _esy
+  - node_modules
+
 init:
   - "echo System architecture: %PLATFORM%"
   - "echo Build folder is: %APPVEYOR_BUILD_FOLDER%"
 
 install:
-  - ps: iex ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/$env:FORK_USER/ocaml-ci-scripts/$env:FORK_BRANCH/appveyor-install.ps1"))
+  # The x64 is required as a workaround for esy/esy#412
+  - ps: Install-Product node 8 x64
+  - npm install -g esy@0.4.9
+  # Retry is necessary due to esy/esy#413 and esy/esy#414
+  - appveyor-retry esy install
 
 build_script:
-  - call %CYG_ROOT%\bin\bash.exe -l %APPVEYOR_BUILD_FOLDER%\appveyor-opam.sh
-  - call %CYG_ROOT%\bin\bash.exe -l %APPVEYOR_BUILD_FOLDER%\resources\appveyor\build.sh
-
-after_build:
-  - cmd: mkdir _build\final
-  - cmd: copy _build\default\rincewind.exe _build\final\rincewind_w%OCAML_VERSION%-%RW_VERSION%.exe
+  - mkdir _build\final
+  - esy build
+  - esy exec-command --include-build-env Rincewind cp "#{self.target_dir}/default/bin/rincewind.exe" _build\final\rincewind_w%OCAML_VERSION%-%RW_VERSION%.exe
 
 artifacts:
   - path: _build\final\*.exe
