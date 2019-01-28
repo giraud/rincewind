@@ -25,7 +25,7 @@ install:
 script:
   - travis_wait 40 esy build
   - mkdir -p _build/final
-  - esy exec-command --include-build-env Rincewind cp "#{self.target_dir}/default/bin/rincewind.exe" _build/final/rincewind_w%OCAML_VERSION%-%RW_VERSION%.exe
+  - esy exec-command --include-build-env rincewind cp "#{self.target_dir}/default/bin/rincewind.exe" _build/final/rincewind_w%OCAML_VERSION%-%RW_VERSION%.exe
 
 deploy:
   provider: bintray
