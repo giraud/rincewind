@@ -1,10 +1,11 @@
 open Location
 open RwTypes
 
-let r = Str.regexp "\n"
+let cr = Str.regexp "\n"
+let sp = Str.regexp "[ ]+"
 
 let clean_type str =
-  Str.global_replace r " " str
+  Str.global_replace sp " " (Str.global_replace cr " " str)
 
 let format_type t =
     clean_type (RwTypes.read_type t)

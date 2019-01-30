@@ -69,23 +69,31 @@ let dump_string_loc {Location.txt; loc} =
 let dump_value_description id vd(*{ val_type; val_kind; val_loc; val_attributes }*) =
   Formatter.clean_type (Format.asprintf "%a" (Printtyp.value_description id) vd)
 
-let rec dump_module_type mt = match mt with
-  | Mty_ident pa -> "MTY_IDENT"
-  | Mty_signature sil -> "MTY_SIGNATURE"
-  | Mty_functor _(*Ident.t * module_type option * module_type*) -> "MTY_FUNCTOR"
-  | Mty_alias _(*alias_presence * Path.t*) -> "MTY_ALIAS"
+let dump_rec_status v = match v with | Trec_not -> "Trec_not" | Trec_first -> "Trec_first" | Trec_next -> "Trec_next"
 
-and dump_module_declaration {md_type(*module_type*); md_attributes(*Parsetree.attributes*); md_loc(*Location.t*) } =
-    dump_module_type md_type
+let rec process_module_type tab mt = match mt with
+  | Mty_ident pa -> mtag tab "Mty_ident"
+  | Mty_signature  signature ->
+        stag tab "Mty_signature" [] (fun tab -> List.iter (process_signature_item tab) signature)
+  | Mty_functor _(*Ident.t * module_type option * module_type*) -> mtag tab "Mty_functor"
+  | Mty_alias _(*alias_presence * Path.t*) -> mtag tab "Mty_alias"
 
-and dump_signature_item si = match si with
-  | Sig_value (id, vd(*value_description*)) -> dump_value_description id vd
-  | Sig_type (id, td(*type_declaration*), rec_status(*rs*)) -> "Sig_type"
-  | Sig_typext (id, ec, es) -> "Sig_typext"
-  | Sig_module (id, md, rs) -> dump_module_declaration md
-  | Sig_modtype (id, md) -> "Sig_modtype"
-  | Sig_class (id, cd, rs) -> "Sig_class"
-  | Sig_class_type (id, ctd, rs) -> "Sig_class_type"
+and process_modtype_declaration tab { mtd_type; mtd_attributes; mtd_loc; } =
+    match mtd_type with | None -> tag tab "mtd_type" [("abstract", "true")] | Some t -> stag tab "mtd_type" [("abstract", "false")] (fun tab -> process_module_type tab t)
+
+and dump_module_declaration tab {md_type(*module_type*); md_attributes(*Parsetree.attributes*); md_loc(*Location.t*) } =
+    process_module_type tab md_type
+
+and process_signature_item tab si = match si with
+  | Sig_value (id, vd(*value_description*)) -> tag tab "Sig_value" [("id", dump_ident id); ("value_description", dump_value_description id vd)]
+  | Sig_type (id, type_declaration, rec_status) ->
+        tag tab "Sig_type" [("id", dump_ident id); ("rec_status", dump_rec_status rec_status); ("type_declaration", RwTypes.dump_type_declaration id type_declaration)]
+  | Sig_typext (id, ec, es) -> mtag tab "Sig_typext"
+  | Sig_module (id, md, rs) -> dump_module_declaration tab md
+  | Sig_modtype (id, modtype_declaration) ->
+        stag tab "Sig_modtype" [("id", dump_ident id)] (fun tab -> process_modtype_declaration tab modtype_declaration)
+  | Sig_class (id, cd, rs) -> mtag tab "Sig_class"
+  | Sig_class_type (id, ctd, rs) -> mtag tab "Sig_class_type"
 
 (* *)
 let rec dump_summary s = match s with
@@ -93,7 +101,7 @@ let rec dump_summary s = match s with
   | Env_value (su, id, vd(*value_description*)) -> "<value:" ^ (dump_value_description id vd)^ "> " ^ (dump_summary su)
   | Env_type (su, id, td) -> "<" ^ (RwTypes.dump_type_declaration id td) ^ "> " ^ (dump_summary su)
   | Env_extension (su, id, ec) -> "<extension:" ^ (dump_ident id) ^ "> " ^ (dump_summary su)
-  | Env_module (su, id, md(*module_declaration*)) -> "<module:" ^ (dump_ident id) ^ ":" ^ (dump_module_declaration md) ^ "> " ^ (dump_summary su)
+  | Env_module (su, id, md(*module_declaration*)) -> "" (*"<module:" ^ (dump_ident id) ^ ":" ^ (dump_module_declaration md) ^ "> " ^ (dump_summary su)*)
   | Env_modtype _ (* summary * Ident.t * modtype_declaration *) -> "Env_modtype"
   | Env_class _ (* summary * Ident.t * class_declaration *) -> "class"
   | Env_cltype _ (* summary * Ident.t * class_type_declaration *) -> "cltype"
@@ -254,11 +262,11 @@ and process_value_binding tab parent_env {vb_pat; vb_expr; vb_attributes; vb_loc
 
 and process_module_description tab env mod_desc =
     match mod_desc with
-    | Tmod_ident (pa(*Path.t*), il(*Longident.t loc*)) ->
-        mtag tab "Tmod_ident"
+    | Tmod_ident (path, longident_loc) ->
+        tag tab "Tmod_ident" [("path", dump_path path); ("longident_loc", dump_longident_loc longident_loc)]
     | Tmod_structure ({ str_items; str_type; str_final_env }) ->
         stag tab "Tmod_structure" [] (fun tab ->
-            stag tab "str_type" [] (fun tab -> (List.iter (fun i -> atag tab "str_item" (dump_signature_item i)) str_type));
+            stag tab "str_type" [] (fun tab -> (List.iter (fun i -> stag tab "str_item" [] (fun tab -> process_signature_item tab i)) str_type));
             stag tab "str_items" [] (fun tab -> List.iter (process_structure_item tab) str_items)
         )
     | Tmod_functor (i(*Ident.t*), sl(*string loc*), mto(*module_type option*),  me(*module_expr*)) ->
@@ -267,14 +275,16 @@ and process_module_description tab env mod_desc =
         mtag tab "Tmod_apply"
     | Tmod_constraint (me(*module_expr*), mt(*Types.module_type*), mtc(*module_type_constraint*), mc(*module_coercion*)) ->
         mtag tab "Tmod_constraint"
-    | Tmod_unpack (e(*expression*), mt(*Types.module_type*)) ->
-        mtag tab "Tmod_unpack"
+    | Tmod_unpack (expression, module_type(*Types.module_type*)) ->
+        stag tab "Tmod_unpack" [] (fun tab ->
+            process_expression tab expression
+        )
 
 and process_module_binding tab env {mb_id; mb_name; mb_expr; mb_attributes; mb_loc} =
     stag tab "module_binding" [("id", dump_ident mb_id); ("mb_name", dump_string_loc mb_name); ("mb_loc", dump_loc mb_loc); ("mb_attributes", "__")] (fun tab ->
         let { mod_desc; mod_loc; mod_type; mod_env; mod_attributes } = mb_expr in
             atag tab "mod_env" "__";
-            atag tab "mod_type" (dump_module_type mod_type);
+            stag tab "mod_type" [] (fun tab -> process_module_type tab mod_type);
             atag tab "mod_loc" (dump_loc mod_loc);
             process_module_description tab mod_env mod_desc
     )
@@ -286,21 +296,21 @@ and process_structure_item tab {str_desc; str_loc; str_env} =
     match str_desc with
     | Tstr_eval (e(*expression*), a(*attributes*)) -> mtag tab "Tstr_eval"
     | Tstr_value (rf(*rec_flag*), vbl(*value_binding list*)) ->
-        stag tab "str_item" [("m", "Tstr_value"); ("str_loc", dump_loc str_loc); ("str_env", "__"); ("rec_flag", dump_rec_flag rf)] (fun tab ->
+        stag tab "Tstr_value" [("str_loc", dump_loc str_loc); ("str_env", "__"); ("rec_flag", dump_rec_flag rf)] (fun tab ->
             List.iter (process_value_binding tab str_env) vbl
         );
     | Tstr_primitive (vd(*value_description*)) -> mtag tab "Tstr_primitive"
     | Tstr_type (tdl(*type_declaration list*)) -> mtag tab "Tstr_type"
     | Tstr_typext (te(*type_extension*)) -> mtag tab "Tstr_typext"
     | Tstr_exception (ec(*extension_constructor*)) -> mtag tab "Tstr_exception"
-    | Tstr_module (mb(*module_binding*)) ->
-        stag tab "str_item" [("m", "Tstr_module"); ("str_loc", dump_loc str_loc); ("str_env", "__")] (fun tab ->
-            process_module_binding tab str_env mb
+    | Tstr_module module_binding ->
+        stag tab "Tstr_module" [("str_loc", dump_loc str_loc); ("str_env", "__")] (fun tab ->
+            process_module_binding tab str_env module_binding
         );
     | Tstr_recmodule (mbl(*module_binding list*)) -> mtag tab "Tstr_recmodule"
     | Tstr_modtype (mtd(*module_type_declaration*)) -> mtag tab "Tstr_modtype"
     | Tstr_open od(*open_description*) ->
-        stag tab "str_item" [("m", "Tstr_open"); ("str_loc", dump_loc str_loc); ("str_env", "__")] (fun tab ->
+        stag tab "Tstr_open" [("str_loc", dump_loc str_loc); ("str_env", "__")] (fun tab ->
             process_open_description tab od
         );
     | Tstr_class (cl(*(cd(*class_declaration*), sl(*string list*), vf(*virtual_flag*)) list*)) -> mtag tab "Tstr_class"
@@ -310,7 +320,7 @@ and process_structure_item tab {str_desc; str_loc; str_env} =
 
 let process_implementation tab {str_items; str_type; str_final_env} =
     mtag tab "str_final_env" (* (dump_summary (Env.summary str_final_env)) *);
-    mtag tab "str_types" (* (Util.List.dump (fun si -> dump_signature_item si) str_type) *);
+    mtag tab "str_types" (* (Util.List.dump (fun si -> process_signature_item si) str_type) *);
     stag tab "str_items" [] (fun tab ->
         List.iter (fun item -> process_structure_item tab item) str_items;
     )
