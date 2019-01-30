@@ -1,13 +1,38 @@
 open Typedtree
 open Types
 
-let rec process_pattern_desc pat_desc =
+let process_pattern_desc pat_desc =
   match pat_desc with
     | Tpat_var (ident, {Location.txt; loc}) ->
         let {Location.loc_ghost; _} = loc in (
         match loc_ghost with
         | true -> None
         | false -> Some("Va|" ^ (Formatter.format_location loc) ^ "|" ^ ident.name ))
+    | _ -> None
+
+let extract_type_t mod_typ =
+    let first l = match l with | [] -> None | hd :: tl -> hd in
+
+    let rec process_signature_item si = match si with
+      | Sig_module (_, {md_type; _}, _) -> List.flatten (process_module_type md_type)
+      | Sig_type (id, td, _) -> [Some(Formatter.format_type_declaration id td)]
+      | _ -> []
+
+    and process_module_type mt = match mt with
+      | Mty_signature signature -> List.map process_signature_item signature
+      | _ -> []
+
+    and process mt =
+        let x = List.flatten (process_module_type mt) in
+        let x' = List.filter (fun item -> match item with | None -> false | Some _ -> true) x in
+        first x'
+      in
+
+    match mod_typ with
+    | Mty_signature signature ->
+        let x = List.map (fun signature_item -> match signature_item with | Sig_module(id, {md_type; _}, rs) -> Some(process md_type) | _ -> None) signature in
+        let x' = List.filter (fun item -> match item with | None -> false | Some _ -> true) x in
+        Util.Option.getWithDefault None (first x')
     | _ -> None
 
 let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
@@ -66,9 +91,6 @@ let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
     | Texp_object (cs, sl) -> ()
     | Texp_pack me -> ()
 
-(**
- Extract information from the right handler of a case
- *)
 and process_case {c_rhs(*expression*); _} =
   process_expression c_rhs
 
@@ -86,31 +108,6 @@ and process_module_description env mod_desc =
     match mod_desc with
     | Tmod_structure ({str_items; str_type; str_final_env}) -> List.iter (fun item -> process_structure_item item) str_items
     | _ -> ()
-
-and extract_type_t mod_typ =
-    let first l = match l with | [] -> None | hd :: tl -> hd in
-
-    let rec process_signature_item si = match si with
-      | Sig_module (_, {md_type; _}, _) -> List.flatten (process_module_type md_type)
-      | Sig_type (id, td, _) -> [Some(Formatter.format_type_declaration id td)]
-      | _ -> []
-
-    and process_module_type mt = match mt with
-      | Mty_signature signature -> List.map process_signature_item signature
-      | _ -> []
-
-    and process mt =
-        let x = List.flatten (process_module_type mt) in
-        let x' = List.filter (fun item -> match item with | None -> false | Some _ -> true) x in
-        first x'
-      in
-
-    match mod_typ with
-    | Mty_signature signature ->
-        let x = List.map (fun signature_item -> match signature_item with | Sig_module(id, {md_type; _}, rs) -> Some(process md_type) | _ -> None) signature in
-        let x' = List.filter (fun item -> match item with | None -> false | Some _ -> true) x in
-        Util.Option.getWithDefault None (first x')
-    | _ -> None
 
 and process_module_binding env {mb_id; mb_name; mb_expr; mb_attributes; mb_loc} =
     let { mod_desc; mod_loc; mod_type; mod_env; mod_attributes; } = mb_expr in
@@ -133,21 +130,7 @@ and process_structure_item {str_desc; str_loc; str_env} =
     | _ -> ()
 
 let read_cmt cmt =
-    let {
-      Cmt_format.cmt_modname (* string *);
-      cmt_annots             (* binary_annots *);
-      cmt_value_dependencies (* (Types.value_description * Types.value_description) list *);
-      cmt_comments           (* (string * Location.t) list *);
-      cmt_args               (* string array *);
-      cmt_sourcefile         (* string option *);
-      cmt_builddir           (* string *);
-      cmt_loadpath           (* string list *);
-      cmt_source_digest      (* Digest.t option *);
-      cmt_initial_env        (* Env.t *);
-      cmt_imports            (* (string * Digest.t option) list *);
-      cmt_interface_digest   (* Digest.t option *);
-      cmt_use_summaries      (* bool *);
-    } = cmt in
+    let { Cmt_format.cmt_annots; cmt_sourcefile; cmt_builddir } = cmt in
     Printf.printf "__|%s|%s\n" (Util.Option.getWithDefault "<NONE>" cmt_sourcefile) cmt_builddir;
 
     match cmt_annots with
