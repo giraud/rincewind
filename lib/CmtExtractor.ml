@@ -1,6 +1,5 @@
 open Typedtree
 open Types
-open RwTypes
 
 let rec process_pattern_desc pat_desc =
   match pat_desc with
@@ -77,7 +76,7 @@ and process_value_binding_pattern {pat_desc; pat_loc; pat_extra; pat_type; pat_e
   let pat = process_pattern_desc pat_desc in
   match pat with
   | None -> ()
-  | Some(p) -> Printf.printf "%s|%s\n" p (Formatter.clean_type (RwTypes.read_type pat_type))
+  | Some(p) -> Printf.printf "%s|%s\n" p (Formatter.format_type pat_type)
 
 and process_value_binding env {vb_pat; vb_expr; vb_attributes; vb_loc} =
     process_value_binding_pattern vb_pat;

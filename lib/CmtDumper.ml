@@ -23,7 +23,7 @@ let dump_partial p = match p with | Typedtree.Partial -> "Partial" | Total -> "T
 
 let dump_rec_flag rf = match rf with | Asttypes.Nonrecursive -> "Nonrecursive" | Recursive -> "Recursive"
 
-let dump_type t = Formatter.clean_type (RwTypes.read_type t)
+let dump_type t = Formatter.format_type t
 
 (*
  ident.mli / Ident.t
@@ -106,7 +106,7 @@ and process_signature_item tab si = match si with
   | Sig_value (id, vd(*value_description*)) ->
         stag tab "Sig_value" [("id", dump_ident id);] (fun tab -> process_value_description tab id vd)
   | Sig_type (id, type_declaration, rec_status) ->
-        tag tab "Sig_type" [("id", dump_ident id); ("rec_status", dump_rec_status rec_status); ("type_declaration", RwTypes.dump_type_declaration id type_declaration)]
+        tag tab "Sig_type" [("id", dump_ident id); ("rec_status", dump_rec_status rec_status); ("type_declaration", Formatter.format_type_declaration id type_declaration)]
   | Sig_typext (id, ec, es) -> mtag tab "Sig_typext"
   | Sig_module (id, md, rs) -> stag tab "Sig_module" [] (fun tab -> dump_module_declaration tab md)
   | Sig_modtype (id, modtype_declaration) ->
@@ -117,7 +117,7 @@ and process_signature_item tab si = match si with
 and dump_summary s = match s with
   | Env.Env_empty -> ""
   | Env_value (su, id, vd(*value_description*)) -> "<value:" ^ (dump_value_description id vd)^ "> " ^ (dump_summary su)
-  | Env_type (su, id, td) -> "<" ^ (RwTypes.dump_type_declaration id td) ^ "> " ^ (dump_summary su)
+  | Env_type (su, id, td) -> "<" ^ (Formatter.format_type_declaration id td) ^ "> " ^ (dump_summary su)
   | Env_extension (su, id, ec) -> "<extension:" ^ (dump_ident id) ^ "> " ^ (dump_summary su)
   | Env_module (su, id, md(*module_declaration*)) -> "" (*"<module:" ^ (dump_ident id) ^ ":" ^ (dump_module_declaration md) ^ "> " ^ (dump_summary su)*)
   | Env_modtype _ (* summary * Ident.t * modtype_declaration *) -> "Env_modtype"
