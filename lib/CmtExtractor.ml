@@ -10,29 +10,18 @@ let process_pattern_desc pat_desc =
         | false -> Some("Va|" ^ (Formatter.format_location loc) ^ "|" ^ ident.name ))
     | _ -> None
 
-let extract_type_t mod_typ =
+let extract_make_type mod_typ =
     let first l = match l with | [] -> None | hd :: tl -> hd in
-
-    let rec process_signature_item si = match si with
-      | Sig_module (_, {md_type; _}, _) -> List.flatten (process_module_type md_type)
-      | Sig_type (id, td, _) -> [Some(Formatter.format_type_declaration id td)]
-      | _ -> []
-
-    and process_module_type mt = match mt with
-      | Mty_signature signature -> List.map process_signature_item signature
-      | _ -> []
-
-    and process mt =
-        let x = List.flatten (process_module_type mt) in
-        let x' = List.filter (fun item -> match item with | None -> false | Some _ -> true) x in
-        first x'
-      in
 
     match mod_typ with
     | Mty_signature signature ->
-        let x = List.map (fun signature_item -> match signature_item with | Sig_module(id, {md_type; _}, rs) -> Some(process md_type) | _ -> None) signature in
+        let x = List.map (fun signature_item ->
+            match signature_item with
+            | Sig_value({name; _}, {val_type; _}) when name = "make" -> Some(Formatter.format_type val_type)
+            | _ -> None)
+            signature in
         let x' = List.filter (fun item -> match item with | None -> false | Some _ -> true) x in
-        Util.Option.getWithDefault None (first x')
+        first x'
     | _ -> None
 
 let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
@@ -115,7 +104,7 @@ and process_module_binding env {mb_id; mb_name; mb_expr; mb_attributes; mb_loc} 
     let { Location.loc_ghost; _ } = mod_loc in (
         match loc_ghost with
         | true ->
-             (match extract_type_t mod_type with
+             (match extract_make_type mod_type with
              | Some(t) -> Printf.printf "Mg|%s|%s|%s\n" (Formatter.format_location loc) (Formatter.format_ident mb_id) t
              | None -> ())
         | false ->
