@@ -21,6 +21,9 @@ let format_path p =
 let format_ident i =
     Format.asprintf "%a" Printtyp.ident(*Ident.print*) i
 
+let format_lident li =
+    Format.asprintf "%a" Printtyp.longident li
+
 let format_position pos =
   (string_of_int pos.Lexing.pos_lnum) ^ "." ^ (string_of_int (pos.pos_cnum - pos.pos_bol(*begining of line*)))
 

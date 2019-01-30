@@ -26,11 +26,11 @@ let extract_make_type mod_typ =
 
 let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
   match exp_desc with
-    | Texp_ident (path, _, {Types.val_type; val_loc; _}) ->
+    | Texp_ident (path, {Asttypes.txt; loc}, {Types.val_type; val_loc; _}) ->
         let {Location.loc_ghost; _} = exp_loc in
         (match loc_ghost with
         | true -> ()
-        | false -> Printf.printf "Id|%s|%s|%s\n" (Formatter.format_location exp_loc) (Formatter.format_path path) (Formatter.format_type val_type))
+        | false -> Printf.printf "Id|%s|%s|%s|%s\n" (Formatter.format_location loc) (Formatter.format_lident txt) (Formatter.format_path path) (Formatter.format_type val_type))
     | Texp_constant c -> ()
     | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
         List.iter (process_value_binding exp_env) vbl;
@@ -116,6 +116,9 @@ and process_structure_item {str_desc; str_loc; str_env} =
     match str_desc with
     | Tstr_value (_, vbl) -> List.iter (process_value_binding str_env) vbl
     | Tstr_module module_binding -> process_module_binding str_env module_binding
+    | Tstr_open {Typedtree.open_path; open_txt; _} ->
+        let {Asttypes.loc; txt} = open_txt in
+        Printf.printf "Op|%s|%s\n" (Formatter.format_location loc) (Longident.last txt)
     | _ -> ()
 
 let read_cmt cmt =

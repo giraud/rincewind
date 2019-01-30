@@ -291,7 +291,7 @@ and process_module_binding tab env {Typedtree.mb_id; mb_name; mb_expr; mb_attrib
     )
 
 and process_open_description tab {Typedtree.open_path; open_txt; open_override; open_loc; open_attributes} =
-    tag tab "open_description" [("open_path", (dump_path open_path)); ("open_loc", dump_loc open_loc); ("open_txt", "__"); ("open_override", "__"); ("open_attributes", "__")]
+    tag tab "open_description" [("open_path", (dump_path open_path)); ("open_loc", dump_loc open_loc); ("open_txt", dump_longident_loc open_txt); ("open_override", "__"); ("open_attributes", "__")]
 
 and process_structure_item tab {str_desc; str_loc; str_env} =
     match str_desc with
