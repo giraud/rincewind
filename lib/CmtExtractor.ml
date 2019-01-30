@@ -4,17 +4,12 @@ open RwTypes
 
 let rec process_pattern_desc pat_desc =
   match pat_desc with
-    | Tpat_any -> "_Any_"
-    | Tpat_var (ident, {Location.txt; loc}) -> "Va|" ^ (Formatter.format_location loc) ^ "|" ^ ident.name
-    | Tpat_alias (pattern, ident, loc) -> ident.name
-    | Tpat_constant (c) -> "_Constant_"
-    | Tpat_tuple (patternl) -> "TUPLE"
-    | Tpat_construct (loc, constr_desc, patternl) -> "_Constr_"
-    | Tpat_variant (label, pattern, row_desc) -> "_Variant_"
-    | Tpat_record (rl, flag) -> "_Record_"
-    | Tpat_array (patternl) -> "_Array_"
-    | Tpat_or (pattern, pattern', row_desc) -> "_Or_"
-    | Tpat_lazy (pattern) -> "_Lazy_"
+    | Tpat_var (ident, {Location.txt; loc}) ->
+        let {Location.loc_ghost; _} = loc in (
+        match loc_ghost with
+        | true -> None
+        | false -> Some("Va|" ^ (Formatter.format_location loc) ^ "|" ^ ident.name ))
+    | _ -> None
 
 let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
   match exp_desc with
@@ -79,7 +74,10 @@ and process_case {c_rhs(*expression*); _} =
   process_expression c_rhs
 
 and process_value_binding_pattern {pat_desc; pat_loc; pat_extra; pat_type; pat_env; pat_attributes} =
-  Printf.printf "%s|%s\n" (process_pattern_desc pat_desc) (Formatter.clean_type (RwTypes.read_type pat_type))
+  let pat = process_pattern_desc pat_desc in
+  match pat with
+  | None -> ()
+  | Some(p) -> Printf.printf "%s|%s\n" p (Formatter.clean_type (RwTypes.read_type pat_type))
 
 and process_value_binding env {vb_pat; vb_expr; vb_attributes; vb_loc} =
     process_value_binding_pattern vb_pat;
@@ -87,44 +85,54 @@ and process_value_binding env {vb_pat; vb_expr; vb_attributes; vb_loc} =
 
 and process_module_description env mod_desc =
     match mod_desc with
-    | Tmod_ident (pa(*Path.t*), il(*Longident.t loc*)) -> Printf.printf "Tmod_ident"
-    | Tmod_structure ({str_items; str_type; str_final_env}(*structure*)) ->
-        List.iter (fun item -> process_structure_item item) str_items
-    | Tmod_functor (i(*Ident.t*), sl(*string loc*), mto(*module_type option*),  me(*module_expr*)) -> Printf.printf "%s" "Tmod_functor"
-    | Tmod_apply (me(*module_expr*), me'(*module_expr*), mc(*module_coercion*)) -> Printf.printf "%s" "Tmod_apply"
-    | Tmod_constraint (me(*module_expr*), mt(*Types.module_type*), mtc(*module_type_constraint*), mc(*module_coercion*)) -> Printf.printf "%s" "Tmod_constraint"
-    | Tmod_unpack (e(*expression*), mt(*Types.module_type*)) ->
-        Printf.printf "Tmod_unpack"
+    | Tmod_structure ({str_items; str_type; str_final_env}) -> List.iter (fun item -> process_structure_item item) str_items
+    | _ -> ()
+
+and extract_type_t mod_typ =
+    let first l = match l with | [] -> None | hd :: tl -> hd in
+
+    let rec process_signature_item si = match si with
+      | Sig_module (_, {md_type; _}, _) -> List.flatten (process_module_type md_type)
+      | Sig_type (id, td, _) -> [Some(Formatter.format_type_declaration id td)]
+      | _ -> []
+
+    and process_module_type mt = match mt with
+      | Mty_signature signature -> List.map process_signature_item signature
+      | _ -> []
+
+    and process mt =
+        let x = List.flatten (process_module_type mt) in
+        let x' = List.filter (fun item -> match item with | None -> false | Some _ -> true) x in
+        first x'
+      in
+
+    match mod_typ with
+    | Mty_signature signature ->
+        let x = List.map (fun signature_item -> match signature_item with | Sig_module(id, {md_type; _}, rs) -> Some(process md_type) | _ -> None) signature in
+        let x' = List.filter (fun item -> match item with | None -> false | Some _ -> true) x in
+        Util.Option.getWithDefault None (first x')
+    | _ -> None
 
 and process_module_binding env {mb_id; mb_name; mb_expr; mb_attributes; mb_loc} =
     let { mod_desc; mod_loc; mod_type; mod_env; mod_attributes; } = mb_expr in
-    Printf.printf "Md|%s|%s\n" (Formatter.format_location mb_loc) (Formatter.format_ident mb_id);
+    let { Asttypes.loc; _ } = mb_name in
+    let { Location.loc_ghost; _ } = mod_loc in (
+        match loc_ghost with
+        | true ->
+             (match extract_type_t mod_type with
+             | Some(t) -> Printf.printf "Mg|%s|%s|%s\n" (Formatter.format_location loc) (Formatter.format_ident mb_id) t
+             | None -> ())
+        | false ->
+            Printf.printf "Md|%s|%s\n" (Formatter.format_location mb_loc) (Formatter.format_ident mb_id)
+    );
     process_module_description mod_env mod_desc;
 
-(**
- Iterate on parsedtree
- *)
 and process_structure_item {str_desc; str_loc; str_env} =
     match str_desc with
-    | Tstr_eval (e(*expression*), a(*attributes*)) -> ()
-    | Tstr_value (rf(*rec_flag*), vbl(*value_binding list*)) ->
-        List.iter (process_value_binding str_env) vbl
-    | Tstr_primitive (vd(*value_description*)) -> ()
-    | Tstr_type (tdl(*type_declaration list*)) -> ()
-    | Tstr_typext (te(*type_extension*)) -> ()
-    | Tstr_exception (ec(*extension_constructor*)) -> ()
-    | Tstr_module (mb(*module_binding*)) -> process_module_binding str_env mb
-    | Tstr_recmodule (mbl(*module_binding list*)) -> ()
-    | Tstr_modtype (mtd(*module_type_declaration*)) -> ()
-    | Tstr_open (od(*open_description*)) -> ()
-    | Tstr_class (cl(*(cd(*class_declaration*), sl(*string list*), vf(*virtual_flag*)) list*)) -> ()
-    | Tstr_class_type (ctl(*(i(*Ident.t*), sl(*string loc*), ctd(*class_type_declaration*)) list*)) -> ()
-    | Tstr_include (id(*include_declaration*)) -> ()
-    | Tstr_attribute (a(*attribute*)) -> ()
+    | Tstr_value (_, vbl) -> List.iter (process_value_binding str_env) vbl
+    | Tstr_module module_binding -> process_module_binding str_env module_binding
+    | _ -> ()
 
-(**
- Extract cmt information for implementation pattern
- *)
 let read_cmt cmt =
     let {
       Cmt_format.cmt_modname (* string *);
@@ -141,12 +149,9 @@ let read_cmt cmt =
       cmt_interface_digest   (* Digest.t option *);
       cmt_use_summaries      (* bool *);
     } = cmt in
-    Printf.printf "%s|%s\n" (Util.Option.getWithDefault "<NONE>" cmt_sourcefile) cmt_builddir;
+    Printf.printf "__|%s|%s\n" (Util.Option.getWithDefault "<NONE>" cmt_sourcefile) cmt_builddir;
 
     match cmt_annots with
-        | Packed (si(*Types.signature *), sl(*string list*)) -> Printf.printf "--|Packed"
-        | Implementation {str_items}(*structure*) -> List.iter process_structure_item str_items
-        | Interface s(*signature*) -> Printf.printf "--|Interface"
-        | Partial_implementation bpa(*binary_part array*) -> Printf.printf "--|Partial_implementation"
-        | Partial_interface bpa(*binary_part array*) -> Printf.printf "--|Partial_interface"
+        | Implementation {str_items} -> List.iter process_structure_item str_items
+        | _ -> ()
 

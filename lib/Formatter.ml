@@ -10,6 +10,9 @@ let clean_type str =
 let format_type t =
     clean_type (RwTypes.read_type t)
 
+let format_type_declaration id td =
+    clean_type (Format.asprintf "%a" (Printtyp.type_declaration id) td)
+
 let format_etype {Typedtree.exp_type; _} =
   RwTypes.read_type exp_type
 
