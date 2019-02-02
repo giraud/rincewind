@@ -5,7 +5,7 @@ platform:
 
 environment:
   HOME: C:\Users\appveyor
-  RW_VERSION: 0.4-dev
+  RW_VERSION: 0.5-dev
 
 cache:
   - C:\Users\appveyor\.esy

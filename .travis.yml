@@ -9,7 +9,7 @@ os:
 
 env:
   global:
-    - RW_VERSION=0.4-dev
+    - RW_VERSION=0.5-dev
   matrix:
     - OCAML_VERSION=4.02
 
