@@ -1,7 +1,10 @@
 name: Build npm release
 
 trigger:
-  - master
+  branches:
+    include:
+      - master
+      - 4.02-azure
 
 jobs:
   - template: .ci/build-platform.yml
