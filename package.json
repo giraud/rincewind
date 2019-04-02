@@ -3,10 +3,6 @@
   "version": "0.1.0",
   "description": "OCaml workflow with Esy",
   "license": "MIT",
-  "scripts": {
-    "package": "esy build&& esy cp \"#{self.target_dir}/default/bin/rincewind.exe\" out/rincewind.exe",
-    "test": "esy x rincewind"
-  },
   "esy": {
     "build": "dune build -p #{self.name}",
     "release": {
@@ -16,6 +12,10 @@
         "@opam/camomile"
       ]
     }
+  },
+  "scripts": {
+    "package": "esy build&& esy cp \"#{self.target_dir}/default/bin/rincewind.exe\" out/rincewind.exe",
+    "test": "esy x rincewind"
   },
   "dependencies": {
     "@opam/dune": "*",
