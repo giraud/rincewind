@@ -14,7 +14,7 @@
     }
   },
   "scripts": {
-    "package": "esy build&& esy cp \"#{self.target_dir}/default/bin/rincewind.exe\" out/rincewind.exe",
+    "package": "esy build&& esy cp \"#{self.target_dir}/default/bin/rincewind.exe\" rincewind.exe",
     "test": "esy x rincewind"
   },
   "dependencies": {
