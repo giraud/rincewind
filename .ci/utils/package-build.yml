@@ -1,5 +1,7 @@
 # steps to install esy globally
 
 steps:
+  - bash: 'mkdir -p $(STAGING_DIRECTORY_UNIX)'
+    displayName: "create out dir"
   - script: "npm run package"
     displayName: "run package"
