@@ -1,7 +1,3 @@
-# steps to install esy globally
-
 steps:
-  - bash: 'mkdir -p $(Build.SourcesDirectory)/out'
-    displayName: "create out dir"
   - script: "npm run package"
     displayName: "run package"

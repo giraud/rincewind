@@ -28,6 +28,6 @@ jobs:
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: ${{ parameters.platform }}"
         inputs:
-          PathtoPublish: "out"
+          PathtoPublish: "distrib"
           ArtifactName: "rincewind-${{ parameters.platform }}.exe"
 
