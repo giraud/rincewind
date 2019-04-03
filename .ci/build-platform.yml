@@ -24,13 +24,5 @@ jobs:
       - template: utils/restore-build-cache.yml
       - script: "esy install"
         displayName: "esy install"
-      - script: "esy build"
-        displayName: "esy build"
-      - script: "esy release"
-        displayName: "esy release"
-      - template: utils/publish-build-cache.yml
-      - task: PublishBuildArtifacts@1
-        displayName: "Publish Artifact: ${{ parameters.platform }}"
-        inputs:
-          PathtoPublish: "_release"
-          ArtifactName: ${{ parameters.platform }}
+      - template: utils/package-build.yml
+

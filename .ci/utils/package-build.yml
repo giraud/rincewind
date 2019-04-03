@@ -1,0 +1,5 @@
+# steps to install esy globally
+
+steps:
+  - script: "npm run package"
+    displayName: "run package"
