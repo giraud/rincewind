@@ -26,8 +26,8 @@ jobs:
         displayName: "esy install"
       - template: utils/package-build.yml
       - task: PublishBuildArtifacts@1
-          displayName: "Publish Artifact: ${{ parameters.platform }}"
-          inputs:
-            PathtoPublish: "out"
-            ArtifactName: "rincewind-${{ parameters.platform }}.exe"
+        displayName: "Publish Artifact: ${{ parameters.platform }}"
+        inputs:
+          PathtoPublish: "out"
+          ArtifactName: "rincewind-${{ parameters.platform }}.exe"
 
