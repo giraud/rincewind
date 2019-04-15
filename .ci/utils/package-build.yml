@@ -1,3 +1,0 @@
-steps:
-  - script: "npm run package"
-    displayName: "run package"

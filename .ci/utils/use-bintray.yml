@@ -1,5 +1,0 @@
-# steps to install bintray globally
-
-steps:
-  - script: "npm install -g bintray"
-    displayName: "install bintray"

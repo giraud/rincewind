@@ -1,4 +1,5 @@
 (library
-  (name lib)
+  (name RinceLib)
+  (public_name rincewind.lib)
   (libraries str compiler-libs.common)
 )

@@ -6,22 +6,42 @@
   "esy": {
     "build": "dune build -p #{self.name}",
     "release": {
-      "bin": "rincewind",
       "includePackages": [
         "root",
         "@opam/camomile"
-      ]
+      ],
+      "releasedBinaries": ["FooApp.exe"]
+    }
+  },
+  "buildDirs": {
+    "test": {
+      "require": ["rincewind/lib", "rely.lib"],
+      "bin": {
+        "TestRincewind.exe": "TestRincewind.re"
+      }
+    },
+    "library": {},
+    "executable": {
+      "require": ["rincewind/lib", "@opam/camomile"],
+      "bin": {
+        "rincewind.exe": "rincewind.ml"
+      }
     }
   },
   "scripts": {
     "package": "esy build&& esy cp \"#{self.target_dir}/default/bin/rincewind.exe\" distrib/rincewind.exe",
-    "test": "esy x rincewind"
+    "test": "esy b dune runtest"
   },
   "dependencies": {
     "@opam/dune": "*",
-    "ocaml": "~4.06.1"
+    "ocaml": "~4.06.1",
+    "pesy": "*",
+    "@reason-native/rely": "*"
   },
   "devDependencies": {
     "ocaml": "~4.06.1"
+  },
+  "resolutions": {
+    "pesy": "esy/pesy#ba6359f25621280a8105d2ffc99d75d849c0d95a"
   }
 }

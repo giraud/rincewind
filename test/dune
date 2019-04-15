@@ -1,0 +1,4 @@
+(test
+    (name TestRincewind)
+    (libraries rincewind.lib rely.lib)
+)
