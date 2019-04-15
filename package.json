@@ -19,9 +19,9 @@
   },
   "dependencies": {
     "@opam/dune": "*",
-    "ocaml": "~4.02.3"
+    "ocaml": "~4.06.1"
   },
   "devDependencies": {
-    "ocaml": "~4.02.3"
+    "ocaml": "~4.06.1"
   }
 }
