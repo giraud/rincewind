@@ -6,4 +6,4 @@ Rincewind is a cmt extractor used by the [ReasonML plugin](https://github.com/re
 
 ## How to build
 
-`jbuilder build rincewind.exe`
+`esy build`

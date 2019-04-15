@@ -1,0 +1,27 @@
+{
+  "name": "rincewind-ocaml",
+  "version": "0.1.0",
+  "description": "OCaml workflow with Esy",
+  "license": "MIT",
+  "esy": {
+    "build": "dune build -p #{self.name}",
+    "release": {
+      "bin": "rincewind",
+      "includePackages": [
+        "root",
+        "@opam/camomile"
+      ]
+    }
+  },
+  "scripts": {
+    "package": "esy build&& esy cp \"#{self.target_dir}/default/bin/rincewind.exe\" distrib/rincewind.exe",
+    "test": "esy x rincewind"
+  },
+  "dependencies": {
+    "@opam/dune": "*",
+    "ocaml": "~4.02.3"
+  },
+  "devDependencies": {
+    "ocaml": "~4.02.3"
+  }
+}
