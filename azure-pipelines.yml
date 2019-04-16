@@ -4,6 +4,8 @@
 # https://aka.ms/yaml
 
 name: $(Build.SourceVersion)
+variables:
+  version: 0.5-dev
 jobs:
 - job: Linux
   timeoutInMinutes: 0
@@ -11,6 +13,7 @@ jobs:
     vmImage: 'Ubuntu 16.04'
 
   variables:
+    os: l
     ESY__CACHE_INSTALL_PATH: /home/vsts/.esy/3_____________________________________________________________________/i/
     ESY__CACHE_SOURCE_TARBALL_PATH: /home/vsts/.esy/source/i
 
@@ -25,6 +28,7 @@ jobs:
     vmImage: 'macOS 10.13'
 
   variables:
+    os: o
     ESY__CACHE_INSTALL_PATH: /Users/vsts/.esy/3____________________________________________________________________/i/
     ESY__CACHE_SOURCE_TARBALL_PATH: /Users/vsts/.esy/source/i
 
@@ -39,6 +43,7 @@ jobs:
     vmImage: 'vs2017-win2016'
 
   variables:
+    os: w
     ESY__CACHE_INSTALL_PATH: _________________________________\i
     ESY__CACHE_SOURCE_TARBALL_PATH: C:\Users\VssAdministrator\.esy\source\i
 
