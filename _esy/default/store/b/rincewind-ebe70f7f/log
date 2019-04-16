@@ -1,16 +1,7 @@
 # C:\Users\herve\.esy\3_\i\opam__s__dune-opam__c__1.9.1-908d2237\bin\dune.exe build -p rincewind
 # OCAMLPARAM: unset
-$ C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamlc.opt.exe -config > C:\Users\herve\AppData\Local\Temp\dune395d37.output
-$ C:\Users\herve\.esy\3_\i\opam__s__ocamlfind-opam__c__1.8.0-375cc28f\bin\ocamlfind.exe printconf path > C:\Users\herve\AppData\Local\Temp\dunee164fa.output
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamlc.opt.exe -w -40 -w -49 -nopervasives -nostdlib -g -bin-annot -I lib/.RinceLib.objs/byte -no-alias-deps -o lib/.RinceLib.objs/byte/rinceLib.cmo -c -impl lib/rinceLib.ml-gen)
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamldep.opt.exe -modules -impl lib/CmtDumper.ml) > C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default/lib/.RinceLib.objs/CmtDumper.ml.d
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamldep.opt.exe -modules -impl lib/CmtExtractor.ml) > C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default/lib/.RinceLib.objs/CmtExtractor.ml.d
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamldep.opt.exe -modules -impl lib/Formatter.ml) > C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default/lib/.RinceLib.objs/Formatter.ml.d
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamldep.opt.exe -modules -impl lib/Util.ml) > C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default/lib/.RinceLib.objs/Util.ml.d
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamldep.opt.exe -modules -impl executable/rincewind.ml) > C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default/executable/.rincewind.eobjs/rincewind.ml.d
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamlopt.opt.exe -w -40 -w -49 -nopervasives -nostdlib -g -I lib/.RinceLib.objs/byte -I lib/.RinceLib.objs/native -intf-suffix .ml-gen -no-alias-deps -o lib/.RinceLib.objs/native/rinceLib.cmx -c -impl lib/rinceLib.ml-gen)
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamlc.opt.exe -w -40 -g -bin-annot -I lib/.RinceLib.objs/byte -I C:/Users/herve/.esy/3_/i/ocaml-4.6.10-7ba95816/lib/ocaml\compiler-libs -no-alias-deps -open RinceLib -o lib/.RinceLib.objs/byte/rinceLib__Util.cmo -c -impl lib/Util.ml)
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamlc.opt.exe -w -40 -g -bin-annot -I lib/.RinceLib.objs/byte -I C:/Users/herve/.esy/3_/i/ocaml-4.6.10-7ba95816/lib/ocaml\compiler-libs -no-alias-deps -open RinceLib -o lib/.RinceLib.objs/byte/rinceLib__Formatter.cmo -c -impl lib/Formatter.ml)
+$ C:\Users\herve\.esy\3_\i\opam__s__ocamlfind-opam__c__1.8.0-375cc28f\bin\ocamlfind.exe printconf path > C:\Users\herve\AppData\Local\Temp\dunedb322f.output
+$ C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamlc.opt.exe -config > C:\Users\herve\AppData\Local\Temp\duneb0f9f3.output
 $ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamlc.opt.exe -w -40 -g -bin-annot -I lib/.RinceLib.objs/byte -I C:/Users/herve/.esy/3_/i/ocaml-4.6.10-7ba95816/lib/ocaml\compiler-libs -no-alias-deps -open RinceLib -o lib/.RinceLib.objs/byte/rinceLib__CmtExtractor.cmo -c -impl lib/CmtExtractor.ml)
 > File "lib/CmtExtractor.ml", line 62, characters 10-16:
 > Error: This expression has type
@@ -18,31 +9,3 @@ $ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:
 >        but an expression was expected of type
 >          ('a * Types.label_description * 'b) list
 [2]
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamlopt.opt.exe -w -40 -g -I lib/.RinceLib.objs/byte -I lib/.RinceLib.objs/native -I C:/Users/herve/.esy/3_/i/ocaml-4.6.10-7ba95816/lib/ocaml\compiler-libs -intf-suffix .ml -no-alias-deps -open RinceLib -o lib/.RinceLib.objs/native/rinceLib__Util.cmx -c -impl lib/Util.ml)
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamlc.opt.exe -w -40 -g -bin-annot -I lib/.RinceLib.objs/byte -I C:/Users/herve/.esy/3_/i/ocaml-4.6.10-7ba95816/lib/ocaml\compiler-libs -no-alias-deps -open RinceLib -o lib/.RinceLib.objs/byte/rinceLib__CmtDumper.cmo -c -impl lib/CmtDumper.ml)
-> File "lib/CmtDumper.ml", line 117, characters 21-929:
-> Warning 8: this pattern-matching is not exhaustive.
-> Here is an example of a case that is not matched:
-> (Env_constraints (_, _)|Env_copy_types (_, _))
-> File "lib/CmtDumper.ml", line 154, characters 8-233:
-> Warning 8: this pattern-matching is not exhaustive.
-> Here is an example of a case that is not matched:
-> PSig _
-> File "lib/CmtDumper.ml", line 174, characters 4-5217:
-> Warning 8: this pattern-matching is not exhaustive.
-> Here is an example of a case that is not matched:
-> (Texp_unreachable|Texp_letexception (_, _)|Texp_extension_constructor (_, _))
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamlopt.opt.exe -w -40 -g -I lib/.RinceLib.objs/byte -I lib/.RinceLib.objs/native -I C:/Users/herve/.esy/3_/i/ocaml-4.6.10-7ba95816/lib/ocaml\compiler-libs -intf-suffix .ml -no-alias-deps -open RinceLib -o lib/.RinceLib.objs/native/rinceLib__Formatter.cmx -c -impl lib/Formatter.ml)
-$ (cd C:/dev/src/rincewind/_esy/default/store/b/rincewind-ebe70f7f\default && C:\Users\herve\.esy\3_\i\ocaml-4.6.10-7ba95816\bin\ocamlopt.opt.exe -w -40 -g -I lib/.RinceLib.objs/byte -I lib/.RinceLib.objs/native -I C:/Users/herve/.esy/3_/i/ocaml-4.6.10-7ba95816/lib/ocaml\compiler-libs -intf-suffix .ml -no-alias-deps -open RinceLib -o lib/.RinceLib.objs/native/rinceLib__CmtDumper.cmx -c -impl lib/CmtDumper.ml)
-> File "lib/CmtDumper.ml", line 117, characters 21-929:
-> Warning 8: this pattern-matching is not exhaustive.
-> Here is an example of a case that is not matched:
-> (Env_constraints (_, _)|Env_copy_types (_, _))
-> File "lib/CmtDumper.ml", line 154, characters 8-233:
-> Warning 8: this pattern-matching is not exhaustive.
-> Here is an example of a case that is not matched:
-> PSig _
-> File "lib/CmtDumper.ml", line 174, characters 4-5217:
-> Warning 8: this pattern-matching is not exhaustive.
-> Here is an example of a case that is not matched:
-> (Texp_unreachable|Texp_letexception (_, _)|Texp_extension_constructor (_, _))
