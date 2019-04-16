@@ -1,1 +1,1 @@
-lib/CmtExtractor.ml: Asttypes Cmt_format Formatter List Location Longident Printf Typedtree Types Util
+lib/CmtExtractor.ml: Array Asttypes Cmt_format Formatter List Location Longident Printf Typedtree Types Util

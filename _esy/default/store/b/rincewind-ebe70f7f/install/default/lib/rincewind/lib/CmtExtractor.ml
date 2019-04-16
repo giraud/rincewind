@@ -54,13 +54,13 @@ let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
         List.iter process_expression expression_list
     | Texp_variant (l, eo) -> ()
     | Texp_record  { fields ; extended_expression; _ } ->
-        List.iter (fun (lil, {lbl_name; lbl_arg; _}, field_expression) ->
+        Array.iter (fun ({lbl_name; lbl_arg; _}, field_expression) ->
             Printf.printf "Rf|%s|%s|%s\n" (Formatter.format_location exp_loc) lbl_name (Formatter.format_type lbl_arg);
             match extended_expression with
             | None -> ()
             | Some e -> process_expression e
         ) fields ;
-        (match expression_option with
+        (match extended_expression with
            | None -> ()
            | Some e -> process_expression e)
     | Texp_field (expression, longident_loc, label_description) ->
@@ -81,6 +81,9 @@ let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
     | Texp_lazy e -> process_expression e
     | Texp_object (cs, sl) -> ()
     | Texp_pack me -> ()
+    | Texp_unreachable -> ()
+    | Texp_letexception (_, _) -> ()
+    | Texp_extension_constructor (_, _) -> ()
 
 and process_case {c_rhs(*expression*); _} =
   process_expression c_rhs

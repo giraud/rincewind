@@ -1,1 +1,1 @@
-executable/rincewind.ml: Arg Cmt_format Lib Printexc Printf
+executable/rincewind.ml: Arg Cmt_format Printexc Printf RinceLib

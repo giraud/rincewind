@@ -10,7 +10,7 @@
         "root",
         "@opam/camomile"
       ],
-      "releasedBinaries": ["FooApp.exe"]
+      "releasedBinaries": ["rincewind.exe"]
     }
   },
   "buildDirs": {

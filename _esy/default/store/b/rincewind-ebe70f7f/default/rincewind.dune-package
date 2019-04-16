@@ -3,7 +3,7 @@
 (library
  (name rincewind.lib)
  (kind normal)
- (orig_src_dir C:\dev\src\rincewind\lib)
+ (orig_src_dir E:\sources\reason\rincewind\lib)
  (archives (byte lib/RinceLib.cma) (native lib/RinceLib.cmxa))
  (plugins (byte lib/RinceLib.cma) (native lib/RinceLib.cmxs))
  (foreign_archives (native lib/RinceLib.a))

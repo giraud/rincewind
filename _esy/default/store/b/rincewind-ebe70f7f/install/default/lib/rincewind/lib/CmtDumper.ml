@@ -125,6 +125,8 @@ and dump_summary s = match s with
   | Env_cltype _ (* summary * Ident.t * class_type_declaration *) -> "cltype"
   | Env_open (su(*summary*), pa(*Path.t*)) -> "<open:" ^ (dump_path pa) ^ "> " ^ (dump_summary su)
   | Env_functor_arg _ (* summary * Ident.t *) -> "functor_arg"
+  | Env_constraints (_, _) -> "constraints"
+  | Env_copy_types (_, _) -> "copy_types"
 
 and dump_env env = dump_summary (Env.summary env)
 
@@ -155,6 +157,7 @@ and process_attribute tab (string_loc, payload) =
         | Parsetree.PStr structure -> tag tab "PStr" []
         | PTyp core_type  (* : T *) -> tag tab "PTyp" []
         | PPat (pattern, expression_option) (* ? P  or  ? P when E *) -> tag tab "PPat" []
+        | PSig _ -> mtag tab "PSig"
     )
 
 and process_label_description tab { Types.lbl_name(* Short name *);
@@ -251,6 +254,9 @@ and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; ex
     | Texp_lazy _(*expression*) -> mtag tab "Texp_lazy"
     | Texp_object _(*class_structure * string list*) -> mtag tab "Texp_object"
     | Texp_pack _(*module_expr*) -> mtag tab "Texp_pack"
+    | Texp_unreachable -> mtag tab "Texp_unreachable"
+    | Texp_letexception (_, _) -> mtag tab "Texp_letexception"
+    | Texp_extension_constructor (_, _) -> mtag tab "Texp_extension_constructor"
 
 and process_value_binding_pattern tab {Typedtree.pat_desc; pat_loc; pat_extra; pat_type; pat_env; pat_attributes} =
   stag tab "value_binding_pattern" [("pat_loc", dump_loc pat_loc); ("pat_type", Formatter.clean_type (print_type_scheme pat_env pat_type)); ("pat_attributes", "__"); ("pat_extra", "__"); ("pat_env", "__")] (fun tab ->
