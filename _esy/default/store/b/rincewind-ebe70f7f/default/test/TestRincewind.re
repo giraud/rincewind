@@ -12,22 +12,19 @@ open TestFramework;
 
 open! Let;
 
-let print_info = (fname) => {
-    let (_cmio, cmto) = Cmt_format.read(fname);
-    switch (cmto) {
-        | Some(cmt) => RinceLib.CmtExtractor.read_cmt(cmt)
-        | _ => Printf.printf("Can't read %s", fname)
-    };
-
-};
 
 describe("my first test suite", ({test, _}) =>
-  test("1 + 1 should equal 2", ({expect}) =>
-    {
-        print_info(".TestRincewind.eobjs/byte/Let.cmt");
-        expect.int(1 + 1).toBe(2);
-    }
-  )
+  test("1 + 1 should equal 2", ({expect}) => {
+    let testFile = "Let";
+    let output: list(string) = TestCore.run_extractor(testFile);
+    //let x = RinceLib.Util.List.join("  ", xxx);
+
+    expect.list(output).toEqual([
+        "Va|1.4,1.5|i|int",
+        "Va|2.4,2.5|f|float",
+        "Va|3.4,3.6|st|string"
+    ]);
+  })
 );
 
 
