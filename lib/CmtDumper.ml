@@ -187,7 +187,7 @@ and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; ex
             );
             process_expression tab expression
         )
-    | Texp_function { arg_label; param; cases; partial } ->
+    | Texp_function { arg_label; cases; partial; _(*param*) } ->
         stag tab "Texp_function" [("label", Printtyp.string_of_label arg_label); ("exp_loc", dump_loc exp_loc); ("partial", dump_partial partial)] (fun tab ->
             stag tab "case_list" [] (fun tab -> List.iter (print_case tab) cases)
         )
@@ -195,7 +195,7 @@ and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; ex
         stag tab "Texp_apply" [("exp_loc", dump_loc exp_loc)] (fun tab ->
             process_expression tab expression;
             stag tab "label_expression_option_optional" [] (fun tab ->
-                List.iter (fun (arg_label, eo) ->
+                List.iter (fun (_arg_label, eo) ->
                     match eo with
                     | None -> ttag tab "label" "no expression"
                     | Some e -> process_expression tab e
@@ -210,12 +210,12 @@ and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; ex
         )
     | Texp_try _(*expression * case list*) -> mtag tab "Texp_try"
     | Texp_tuple _(*expression list*) -> mtag tab  "Texp_tuple"
-    | Texp_construct (lil(*Longident.t loc*), cd(*constructor_description*), el(*expression list*)) ->
+    | Texp_construct (lil(*Longident.t loc*), _cd(*constructor_description*), el(*expression list*)) ->
         stag tab "Texp_construct" [("exp_loc", dump_loc exp_loc); ("longident_loc", dump_longident_loc lil)] (fun tab ->
             List.iter (process_expression tab) el
         )
     | Texp_variant _(*label * expression option*) -> mtag tab  "Texp_variant"
-    | Texp_record { fields; representation; extended_expression } ->
+    | Texp_record { fields; extended_expression; _(*representation*) } ->
         stag tab "Texp_record" [("exp_loc", dump_loc exp_loc)] (fun tab ->
             stag tab "longident_label_description_expression" [] (fun tab ->
                 (*  (Types.label_description * Typedtree.record_label_definition) array *)
@@ -223,8 +223,8 @@ and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; ex
                     stag tab "record_item" [("label_loc", dump_loc ld.Types.lbl_loc)] (fun tab ->
                         process_label_description tab ld;
                         match rld with
-                        | Typedtree.Kept e(*Types.type_expr*) -> mtag tab "Kept"
-                        | Overridden (l(*Longident.t loc*), e(*expression*)) -> process_expression tab e
+                        | Typedtree.Kept _e(*Types.type_expr*) -> mtag tab "Kept"
+                        | Overridden (_l(*Longident.t loc*), e(*expression*)) -> process_expression tab e
                     )
                 ) fields
             );
@@ -258,77 +258,77 @@ and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; ex
     | Texp_letexception (_, _) -> mtag tab "Texp_letexception"
     | Texp_extension_constructor (_, _) -> mtag tab "Texp_extension_constructor"
 
-and process_value_binding_pattern tab {Typedtree.pat_desc; pat_loc; pat_extra; pat_type; pat_env; pat_attributes} =
+and process_value_binding_pattern tab {Typedtree.pat_desc; pat_loc; pat_type; pat_env; _(*pat_extra; pat_attributes*)} =
   stag tab "value_binding_pattern" [("pat_loc", dump_loc pat_loc); ("pat_type", Formatter.clean_type (print_type_scheme pat_env pat_type)); ("pat_attributes", "__"); ("pat_extra", "__"); ("pat_env", "__")] (fun tab ->
       process_pattern_desc tab pat_desc
   )
 
-and process_value_binding tab parent_env {vb_pat; vb_expr; vb_attributes; vb_loc} =
+and process_value_binding tab _parent_env {vb_pat; vb_expr; vb_loc; _(*vb_attributes*)} =
     stag tab "value_binding" [("vb_loc", dump_loc vb_loc); ("vb_attributes", "__")] (fun tab ->
         process_value_binding_pattern tab vb_pat;
         process_expression tab vb_expr
     )
 
-and process_module_description tab env mod_desc =
+and process_module_description tab _env mod_desc =
     match mod_desc with
     | Typedtree.Tmod_ident (path, longident_loc) ->
         tag tab "Tmod_ident" [("path", dump_path path); ("longident_loc", dump_longident_loc longident_loc)]
-    | Tmod_structure ({ str_items; str_type; str_final_env }) ->
+    | Tmod_structure ({ str_items; str_type; _(*str_final_env*) }) ->
         stag tab "Tmod_structure" [] (fun tab ->
             stag tab "str_type" [] (fun tab -> (List.iter (fun i -> stag tab "str_item" [] (fun tab -> process_signature_item tab i)) str_type));
             stag tab "str_items" [] (fun tab -> List.iter (process_structure_item tab) str_items)
         )
-    | Tmod_functor (i(*Ident.t*), sl(*string loc*), mto(*module_type option*),  me(*module_expr*)) ->
+    | Tmod_functor (_i(*Ident.t*), _sl(*string loc*), _mto(*module_type option*), _me(*module_expr*)) ->
         mtag tab "Tmod_functor"
-    | Tmod_apply (me(*module_expr*), me'(*module_expr*), mc(*module_coercion*)) ->
+    | Tmod_apply (_me(*module_expr*), _me'(*module_expr*), _mc(*module_coercion*)) ->
         mtag tab "Tmod_apply"
-    | Tmod_constraint (me(*module_expr*), mt(*Types.module_type*), mtc(*module_type_constraint*), mc(*module_coercion*)) ->
+    | Tmod_constraint (_me(*module_expr*), _mt(*Types.module_type*), _mtc(*module_type_constraint*), _mc(*module_coercion*)) ->
         mtag tab "Tmod_constraint"
-    | Tmod_unpack (expression, module_type(*Types.module_type*)) ->
+    | Tmod_unpack (expression, _module_type(*Types.module_type*)) ->
         stag tab "Tmod_unpack" [] (fun tab ->
             process_expression tab expression
         )
 
-and process_module_binding tab env {Typedtree.mb_id; mb_name; mb_expr; mb_attributes; mb_loc} =
+and process_module_binding tab _env {Typedtree.mb_id; mb_name; mb_expr; mb_attributes; mb_loc} =
     stag tab "module_binding" [("id", dump_ident mb_id); ("mb_name", dump_string_loc mb_name); ("mb_loc", dump_loc mb_loc)] (fun tab ->
         stag tab "mb_attributes" [] (fun tab -> List.iter (process_attribute tab) mb_attributes);
-        let { Typedtree.mod_desc; mod_loc; mod_type; mod_env; mod_attributes } = mb_expr in
+        let { Typedtree.mod_desc; mod_loc; mod_type; mod_env; _(*mod_attributes*) } = mb_expr in
             atag tab "mod_env" "__";
             stag tab "mod_type" [] (fun tab -> process_module_type tab mod_type);
             atag tab "mod_loc" (dump_loc mod_loc);
             process_module_description tab mod_env mod_desc
     )
 
-and process_open_description tab {Typedtree.open_path; open_txt; open_override; open_loc; open_attributes} =
+and process_open_description tab {Typedtree.open_path; open_txt; open_loc; _(*open_override; open_attributes*)} =
     tag tab "open_description" [("open_path", (dump_path open_path)); ("open_loc", dump_loc open_loc); ("open_txt", dump_longident_loc open_txt); ("open_override", "__"); ("open_attributes", "__")]
 
 and process_structure_item tab {str_desc; str_loc; str_env} =
     match str_desc with
-    | Tstr_eval (e(*expression*), a(*attributes*)) -> mtag tab "Tstr_eval"
+    | Tstr_eval (_e(*expression*), _a(*attributes*)) -> mtag tab "Tstr_eval"
     | Tstr_value (rf(*rec_flag*), vbl(*value_binding list*)) ->
         stag tab "Tstr_value" [("str_loc", dump_loc str_loc); ("str_env", "__"); ("rec_flag", dump_rec_flag rf)] (fun tab ->
             List.iter (process_value_binding tab str_env) vbl
         );
-    | Tstr_primitive (vd(*value_description*)) -> mtag tab "Tstr_primitive"
-    | Tstr_type (rec_flag, decls) -> mtag tab "Tstr_type"
-    | Tstr_typext (te(*type_extension*)) -> mtag tab "Tstr_typext"
-    | Tstr_exception (ec(*extension_constructor*)) -> mtag tab "Tstr_exception"
+    | Tstr_primitive (_vd(*value_description*)) -> mtag tab "Tstr_primitive"
+    | Tstr_type (_rec_flag, _decls) -> mtag tab "Tstr_type"
+    | Tstr_typext (_te(*type_extension*)) -> mtag tab "Tstr_typext"
+    | Tstr_exception (_ec(*extension_constructor*)) -> mtag tab "Tstr_exception"
     | Tstr_module module_binding ->
         stag tab "Tstr_module" [("str_loc", dump_loc str_loc); ("str_env", "__")] (fun tab ->
             process_module_binding tab str_env module_binding
         );
-    | Tstr_recmodule (mbl(*module_binding list*)) -> mtag tab "Tstr_recmodule"
-    | Tstr_modtype (mtd(*module_type_declaration*)) -> mtag tab "Tstr_modtype"
+    | Tstr_recmodule (_mbl(*module_binding list*)) -> mtag tab "Tstr_recmodule"
+    | Tstr_modtype (_mtd(*module_type_declaration*)) -> mtag tab "Tstr_modtype"
     | Tstr_open od(*open_description*) ->
         stag tab "Tstr_open" [("str_loc", dump_loc str_loc); ("str_env", "__")] (fun tab ->
             process_open_description tab od
         );
-    | Tstr_class (cl(*(cd(*class_declaration*), sl(*string list*), vf(*virtual_flag*)) list*)) -> mtag tab "Tstr_class"
-    | Tstr_class_type (ctl(*(i(*Ident.t*), sl(*string loc*), ctd(*class_type_declaration*)) list*)) -> mtag tab "Tstr_class_type"
-    | Tstr_include (id(*include_declaration*)) -> mtag tab "Tstr_include"
-    | Tstr_attribute (a(*attribute*)) -> mtag tab "Tstr_attribute"
+    | Tstr_class (_cl(*(cd(*class_declaration*), sl(*string list*), vf(*virtual_flag*)) list*)) -> mtag tab "Tstr_class"
+    | Tstr_class_type (_ctl(*(i(*Ident.t*), sl(*string loc*), ctd(*class_type_declaration*)) list*)) -> mtag tab "Tstr_class_type"
+    | Tstr_include (_id(*include_declaration*)) -> mtag tab "Tstr_include"
+    | Tstr_attribute (_a(*attribute*)) -> mtag tab "Tstr_attribute"
 
-let process_implementation tab {Typedtree.str_items; str_type; str_final_env} =
+let process_implementation tab {Typedtree.str_items; _(*str_type; str_final_env*)} =
     mtag tab "str_final_env" (* (dump_summary (Env.summary str_final_env)) *);
     mtag tab "str_types" (* (Util.List.dump (fun si -> process_signature_item si) str_type) *);
     stag tab "str_items" [] (fun tab ->
@@ -339,7 +339,6 @@ let print_cmt cmt =
     let {
       Cmt_format.cmt_modname (* string *);
       cmt_annots             (* binary_annots *);
-      cmt_value_dependencies (* (Types.value_description * Types.value_description) list *);
       cmt_comments           (* (string * Location.t) list *);
       cmt_args               (* string array *);
       cmt_sourcefile         (* string option *);
@@ -350,6 +349,8 @@ let print_cmt cmt =
       cmt_imports            (* (string * Digest.t option) list *);
       cmt_interface_digest   (* Digest.t option *);
       cmt_use_summaries      (* bool *);
+      _
+      (*cmt_value_dependencies (* (Types.value_description * Types.value_description) list *); *)
     } = cmt in
 
     stag "" "doc" [] (fun tab ->
@@ -369,11 +370,11 @@ let print_cmt cmt =
         );
         stag tab "tree" [] (fun tab ->
             match cmt_annots with
-            | Packed (signature, string_list) -> mtag tab "Packed"
+            | Packed (_signature, _string_list) -> mtag tab "Packed"
             | Implementation structure -> process_implementation tab structure
-            | Interface signature -> mtag tab "Interface"
-            | Partial_implementation binary_part_array -> mtag tab "Partial_implementation"
-            | Partial_interface binary_part_array -> mtag tab "Partial_interface";
+            | Interface _signature -> mtag tab "Interface"
+            | Partial_implementation _binary_part_array -> mtag tab "Partial_implementation"
+            | Partial_interface _binary_part_array -> mtag tab "Partial_interface";
         );
     )
 
