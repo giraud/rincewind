@@ -1,4 +1,3 @@
-
 module TestFramework =
   Rely.Make({
     let config =
@@ -10,14 +9,10 @@ module TestFramework =
 
 open TestFramework;
 
-open! Let;
-
-
-describe("my first test suite", ({test, _}) =>
-  test("1 + 1 should equal 2", ({expect}) => {
-    let testFile = "Let";
-    let output: list(string) = TestCore.run_extractor(testFile);
-    //let x = RinceLib.Util.List.join("  ", xxx);
+describe("cmt extractor", ({test, _}) =>
+  test("should get let info", ({expect}) => {
+    open! Let;
+    let output = TestCore.run_extractor("Let");
 
     expect.list(output).toEqual([
         "Va|1.4,1.5|i|int",
