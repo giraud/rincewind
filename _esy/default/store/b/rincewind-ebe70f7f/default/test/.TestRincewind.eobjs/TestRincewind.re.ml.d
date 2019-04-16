@@ -1,1 +1,1 @@
-test/TestRincewind.re.ml: Rely
+test/TestRincewind.re.ml: Cmt_format Let Printf Rely RinceLib
