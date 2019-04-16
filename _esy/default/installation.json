@@ -1,93 +1,87 @@
 {
-  "yaml@0.2.3@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\yaml__0.2.3__5eae48aa",
+  "yaml@0.2.3@d41d8cd9": "/home/herve/.esy/source/i/yaml__0.2.3__5eae48aa",
   "xmlbuilder@12.0.0@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\xmlbuilder__12.0.0__811749c9",
+    "/home/herve/.esy/source/i/xmlbuilder__12.0.0__811749c9",
   "xml2js@0.4.0@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\xml2js__0.4.0__0b24ebff",
+    "/home/herve/.esy/source/i/xml2js__0.4.0__0b24ebff",
   "weak-map@1.0.5@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\weak_map__1.0.5__aab9bba5",
-  "sax@0.5.8@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\sax__0.5.8__cef9b249",
-  "rincewind@link-dev:./package.json": "E:\\sources\\reason\\rincewind",
+    "/home/herve/.esy/source/i/weak_map__1.0.5__aab9bba5",
+  "sax@0.5.8@d41d8cd9": "/home/herve/.esy/source/i/sax__0.5.8__cef9b249",
+  "rincewind@link-dev:./package.json": "/media/donnees/dev/rincewind",
   "restler@3.2.2@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\restler__3.2.2__95229bdf",
+    "/home/herve/.esy/source/i/restler__3.2.2__95229bdf",
   "refmterr@3.1.10@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\refmterr__3.1.10__c289b5fb",
-  "qs@0.6.6@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\qs__0.6.6__a503c608",
-  "q@2.0.3@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\q__2.0.3__13d2bd53",
+    "/home/herve/.esy/source/i/refmterr__3.1.10__c289b5fb",
+  "qs@0.6.6@d41d8cd9": "/home/herve/.esy/source/i/qs__0.6.6__a503c608",
+  "q@2.0.3@d41d8cd9": "/home/herve/.esy/source/i/q__2.0.3__13d2bd53",
   "pop-iterate@1.0.1@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\pop_iterate__1.0.1__de6c9fb1",
-  "pesy@0.4.1@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\pesy__0.4.1__b985d2ec",
+    "/home/herve/.esy/source/i/pop_iterate__1.0.1__de6c9fb1",
+  "pesy@0.4.1@d41d8cd9": "/home/herve/.esy/source/i/pesy__0.4.1__b985d2ec",
   "ocaml@4.6.10@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\ocaml__4.6.10__9ccacbc4",
+    "/home/herve/.esy/source/i/ocaml__4.6.10__9ccacbc4",
   "lodash@3.5.0@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\lodash__3.5.0__fa28e895",
+    "/home/herve/.esy/source/i/lodash__3.5.0__fa28e895",
   "iconv-lite@0.2.11@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\iconv_lite__0.2.11__189bf4e9",
+    "/home/herve/.esy/source/i/iconv_lite__0.2.11__189bf4e9",
   "graceful-readlink@1.0.1@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\graceful_readlink__1.0.1__164dc964",
+    "/home/herve/.esy/source/i/graceful_readlink__1.0.1__164dc964",
   "commander@2.7.1@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\commander__2.7.1__aa10896d",
+    "/home/herve/.esy/source/i/commander__2.7.1__aa10896d",
   "colors@1.0.3@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\colors__1.0.3__8c3bb06b",
+    "/home/herve/.esy/source/i/colors__1.0.3__8c3bb06b",
   "bintray@0.1.6@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\bintray__0.1.6__8aaebe4e",
-  "asap@2.0.6@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\asap__2.0.6__2a7a3916",
+    "/home/herve/.esy/source/i/bintray__0.1.6__8aaebe4e",
+  "asap@2.0.6@d41d8cd9": "/home/herve/.esy/source/i/asap__2.0.6__2a7a3916",
   "@reason-native/rely@2.0.0@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\reason_native__s__rely__2.0.0__f8222a15",
+    "/home/herve/.esy/source/i/reason_native__s__rely__2.0.0__f8222a15",
   "@reason-native/pastel@0.2.1@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\reason_native__s__pastel__0.2.1__68084b42",
+    "/home/herve/.esy/source/i/reason_native__s__pastel__0.2.1__68084b42",
   "@reason-native/file-context-printer@0.0.3@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\reason_native__s__file_context_printer__0.0.3__9dea979f",
+    "/home/herve/.esy/source/i/reason_native__s__file_context_printer__0.0.3__9dea979f",
   "@opam/uutf@opam:1.0.2@4440868f":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__uutf__opam__c__1.0.2__34474f09",
+    "/home/herve/.esy/source/i/opam__s__uutf__opam__c__1.0.2__34474f09",
   "@opam/uchar@opam:0.0.2@c8218eea":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__uchar__opam__c__0.0.2__d1ad73a0",
+    "/home/herve/.esy/source/i/opam__s__uchar__opam__c__0.0.2__d1ad73a0",
   "@opam/tyxml@opam:4.3.0@15e44054":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__tyxml__opam__c__4.3.0__8cecdfa3",
+    "/home/herve/.esy/source/i/opam__s__tyxml__opam__c__4.3.0__8cecdfa3",
   "@opam/topkg@opam:1.0.0@61f4ccf9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__topkg__opam__c__1.0.0__1e0a2ad6",
+    "/home/herve/.esy/source/i/opam__s__topkg__opam__c__1.0.0__1e0a2ad6",
   "@opam/seq@opam:0.1@93954fa7":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__seq__opam__c__0.1__7380cd17",
+    "/home/herve/.esy/source/i/opam__s__seq__opam__c__0.1__7380cd17",
   "@opam/result@opam:1.3@bee8bf2e":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__result__opam__c__1.3__9ba148be",
+    "/home/herve/.esy/source/i/opam__s__result__opam__c__1.3__9ba148be",
   "@opam/re@opam:1.9.0@7f4a36a5":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__re__opam__c__1.9.0__22ec4eb0",
+    "/home/herve/.esy/source/i/opam__s__re__opam__c__1.9.0__22ec4eb0",
   "@opam/ptime@opam:0.8.4@82555699":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__ptime__opam__c__0.8.4__3fec6afd",
+    "/home/herve/.esy/source/i/opam__s__ptime__opam__c__0.8.4__3fec6afd",
   "@opam/ppx_derivers@opam:1.2.1@0b458500":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__ppx__derivers__opam__c__1.2.1__88e907fb",
+    "/home/herve/.esy/source/i/opam__s__ppx__derivers__opam__c__1.2.1__88e907fb",
   "@opam/ocamlfind@opam:1.8.0@f744a0c5":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__ocamlfind__opam__c__1.8.0__6ce51c9c",
+    "/home/herve/.esy/source/i/opam__s__ocamlfind__opam__c__1.8.0__6ce51c9c",
   "@opam/ocamlbuild@opam:0.14.0@427a2331":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__ocamlbuild__opam__c__0.14.0__56d4d3d9",
+    "/home/herve/.esy/source/i/opam__s__ocamlbuild__opam__c__0.14.0__56d4d3d9",
   "@opam/ocaml-migrate-parsetree@opam:1.2.0@23e55f71":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__ocaml_migrate_parsetree__opam__c__1.2.0__776c6020",
+    "/home/herve/.esy/source/i/opam__s__ocaml_migrate_parsetree__opam__c__1.2.0__776c6020",
   "@opam/merlin-extend@opam:0.3@0af73a50":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__merlin_extend__opam__c__0.3__6711ef24",
+    "/home/herve/.esy/source/i/opam__s__merlin_extend__opam__c__0.3__6711ef24",
   "@opam/menhir@opam:20181113@0c8257a8":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__menhir__opam__c__20181113__60f5f0fb",
+    "/home/herve/.esy/source/i/opam__s__menhir__opam__c__20181113__60f5f0fb",
   "@opam/junit@opam:2.0.1@c25e35a7":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__junit__opam__c__2.0.1__b823c5a1",
+    "/home/herve/.esy/source/i/opam__s__junit__opam__c__2.0.1__b823c5a1",
   "@opam/jbuilder@opam:transition@58bdfe0a":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__jbuilder__opam__c__transition__c94246e9",
+    "/home/herve/.esy/source/i/opam__s__jbuilder__opam__c__transition__c94246e9",
   "@opam/dune@opam:1.9.1@61bdaadf":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__dune__opam__c__1.9.1__f5e7d360",
+    "/home/herve/.esy/source/i/opam__s__dune__opam__c__1.9.1__f5e7d360",
   "@opam/cppo@opam:1.6.5@bec3dbd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__cppo__opam__c__1.6.5__067896e1",
+    "/home/herve/.esy/source/i/opam__s__cppo__opam__c__1.6.5__067896e1",
   "@opam/conf-m4@opam:1@dd7dde42":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__conf_m4__opam__c__1__2502196a",
+    "/home/herve/.esy/source/i/opam__s__conf_m4__opam__c__1__2502196a",
   "@opam/base-unix@opam:base@87d0b2eb":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__base_unix__opam__c__base__93427a57",
+    "/home/herve/.esy/source/i/opam__s__base_unix__opam__c__base__93427a57",
   "@opam/base-threads@opam:base@36803084":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\opam__s__base_threads__opam__c__base__f282958b",
+    "/home/herve/.esy/source/i/opam__s__base_threads__opam__c__base__f282958b",
   "@esy-ocaml/substs@0.0.1@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\esy_ocaml__s__substs__0.0.1__19de1ee1",
+    "/home/herve/.esy/source/i/esy_ocaml__s__substs__0.0.1__19de1ee1",
   "@esy-ocaml/reason@3.4.0@d41d8cd9":
-    "C:\\Users\\hgiraud\\.esy\\source\\i\\esy_ocaml__s__reason__3.4.0__d55f0cf4"
+    "/home/herve/.esy/source/i/esy_ocaml__s__reason__3.4.0__d55f0cf4"
 }

@@ -14,5 +14,7 @@ steps:
   - script: esy test
     displayName: 'esy test'
   - script: esy release
-    displayName: 'Test Creation of Prebuilt Binary Releases'
+    displayName: 'Creation of Prebuilt Binary Releases'
     continueOnError: true
+  - script: esy cp $(self.target_dir)/default/executable/rincewind.exe _release/rincewind.exe
+    displayName: 'Copy release'
