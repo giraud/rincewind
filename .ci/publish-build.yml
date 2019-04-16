@@ -1,0 +1,9 @@
+# Steps for publishing project cache
+
+steps:
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish build'
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    inputs:
+        pathToPublish: _release/rincewind.exe
+        artifactName: 'rincewind-$(Agent.OS)-$(version).exe'
