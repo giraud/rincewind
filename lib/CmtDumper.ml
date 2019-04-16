@@ -46,7 +46,7 @@ match p with
    | Papply (t, t') -> "apply"
 *)
 
-let dump_pos { Lexing.pos_fname(*source file*); pos_lnum; pos_bol; pos_cnum; } =
+let dump_pos { Lexing.pos_lnum; pos_bol; pos_cnum; _(*pos_fname(*source file*)*)} =
   (*"<pos:" ^ pos_fname ^ ":" ^ (string_of_int pos_lnum) ^ ":" ^ (string_of_int pos_bol) ^ ":" ^ (string_of_int pos_cnum) ^ ">"*)
   (string_of_int pos_lnum) ^ "." ^ (string_of_int (pos_cnum - pos_bol + 1))
 
@@ -83,7 +83,7 @@ let print_type_scheme env typ =
   Printtyp.wrap_printing_env env (fun () -> Format.asprintf "%a" Printtyp.type_scheme typ)
 
 let rec process_module_type tab mt = match mt with
-  | Types.Mty_ident pa -> mtag tab "Mty_ident"
+  | Types.Mty_ident _pa -> mtag tab "Mty_ident"
   | Mty_signature  signature ->
         stag tab "Mty_signature" [] (fun tab -> List.iter (process_signature_item tab) signature)
   | Mty_functor _(*Ident.t * module_type option * module_type*) -> mtag tab "Mty_functor"
@@ -96,10 +96,10 @@ and process_value_description tab id vd =
       List.iter (process_attribute tab) val_attributes
   )
 
-and process_modtype_declaration tab { Types.mtd_type; mtd_attributes; mtd_loc; } =
+and process_modtype_declaration tab { Types.mtd_type; _(*mtd_attributes; mtd_loc;*) } =
     match mtd_type with | None -> tag tab "mtd_type" [("abstract", "true")] | Some t -> stag tab "mtd_type" [("abstract", "false")] (fun tab -> process_module_type tab t)
 
-and dump_module_declaration tab {Types.md_type; md_attributes; md_loc} =
+and dump_module_declaration tab {Types.md_type; _(*md_attributes; md_loc*)} =
     process_module_type tab md_type
 
 and process_signature_item tab si = match si with
@@ -107,19 +107,19 @@ and process_signature_item tab si = match si with
         stag tab "Sig_value" [("id", dump_ident id);] (fun tab -> process_value_description tab id vd)
   | Sig_type (id, type_declaration, rec_status) ->
         tag tab "Sig_type" [("id", dump_ident id); ("rec_status", dump_rec_status rec_status); ("type_declaration", Formatter.format_type_declaration id type_declaration)]
-  | Sig_typext (id, ec, es) -> mtag tab "Sig_typext"
-  | Sig_module (id, md, rs) -> stag tab "Sig_module" [] (fun tab -> dump_module_declaration tab md)
+  | Sig_typext (_id, _ec, _es) -> mtag tab "Sig_typext"
+  | Sig_module (_id, md, _rs) -> stag tab "Sig_module" [] (fun tab -> dump_module_declaration tab md)
   | Sig_modtype (id, modtype_declaration) ->
         stag tab "Sig_modtype" [("id", dump_ident id)] (fun tab -> process_modtype_declaration tab modtype_declaration)
-  | Sig_class (id, cd, rs) -> mtag tab "Sig_class"
-  | Sig_class_type (id, ctd, rs) -> mtag tab "Sig_class_type"
+  | Sig_class (_id, _cd, _rs) -> mtag tab "Sig_class"
+  | Sig_class_type (_id, _ctd, _rs) -> mtag tab "Sig_class_type"
 
 and dump_summary s = match s with
   | Env.Env_empty -> ""
   | Env_value (su, id, vd(*value_description*)) -> "<value:" ^ (dump_value_description id vd)^ "> " ^ (dump_summary su)
   | Env_type (su, id, td) -> "<" ^ (Formatter.format_type_declaration id td) ^ "> " ^ (dump_summary su)
-  | Env_extension (su, id, ec) -> "<extension:" ^ (dump_ident id) ^ "> " ^ (dump_summary su)
-  | Env_module (su, id, md(*module_declaration*)) -> "" (*"<module:" ^ (dump_ident id) ^ ":" ^ (dump_module_declaration md) ^ "> " ^ (dump_summary su)*)
+  | Env_extension (su, id, _ec) -> "<extension:" ^ (dump_ident id) ^ "> " ^ (dump_summary su)
+  | Env_module (_su, _id, _md(*module_declaration*)) -> "" (*"<module:" ^ (dump_ident id) ^ ":" ^ (dump_module_declaration md) ^ "> " ^ (dump_summary su)*)
   | Env_modtype _ (* summary * Ident.t * modtype_declaration *) -> "Env_modtype"
   | Env_class _ (* summary * Ident.t * class_declaration *) -> "class"
   | Env_cltype _ (* summary * Ident.t * class_type_declaration *) -> "cltype"
@@ -135,18 +135,18 @@ and process_pattern_desc tab pat_desc =
     | Typedtree.Tpat_any -> mtag tab "Tpat_any"
     | Tpat_var (i, sl) ->
         tag tab "Tpat_var" [("ident", dump_ident i); ("string_loc", dump_string_loc sl)]
-    | Tpat_alias (pattern, ident, loc) -> mtag tab "Tpat_alias"
-    | Tpat_constant (c) ->  mtag tab "Tpat_constant"
-    | Tpat_tuple (patternl) -> mtag tab "Tpat_tuple"
-    | Tpat_construct (loc, constr_desc, patternl) -> mtag tab "Tpat_construct"
-    | Tpat_variant (label, pattern, row_desc) -> mtag tab "Tpat_variant"
-    | Tpat_record (rl, flag) -> mtag tab "Tpat_record"
-    | Tpat_array (patternl) -> mtag tab "Tpat_array"
-    | Tpat_or (pattern, pattern', row_desc) -> mtag tab "Tpat_or"
-    | Tpat_lazy (pattern) -> mtag tab "Tpat_lazy"
+    | Tpat_alias (_pattern, _ident, _loc) -> mtag tab "Tpat_alias"
+    | Tpat_constant (_c) ->  mtag tab "Tpat_constant"
+    | Tpat_tuple (_patternl) -> mtag tab "Tpat_tuple"
+    | Tpat_construct (_loc, _constr_desc, _patternl) -> mtag tab "Tpat_construct"
+    | Tpat_variant (_label, _pattern, _row_desc) -> mtag tab "Tpat_variant"
+    | Tpat_record (_rl, _flag) -> mtag tab "Tpat_record"
+    | Tpat_array (_patternl) -> mtag tab "Tpat_array"
+    | Tpat_or (_pattern, _pattern', _row_desc) -> mtag tab "Tpat_or"
+    | Tpat_lazy (_pattern) -> mtag tab "Tpat_lazy"
 
-and print_case tab {Typedtree.c_lhs; c_guard; c_rhs} =
-    let {Typedtree.pat_desc; pat_loc; pat_extra; pat_type; pat_env; pat_attributes} = c_lhs in
+and print_case tab {Typedtree.c_lhs; c_rhs; _(*c_guard; *)} =
+    let {Typedtree.pat_desc; pat_loc; _ (*pat_extra; pat_env; pat_attributes;pat_type;*)} = c_lhs in
         stag tab "c_lhs" [("pat_loc", dump_loc pat_loc); ("pat_env", "__"); ("pat_attributes", "__"); ("pat_extra", "__")] (fun tab -> process_pattern_desc tab pat_desc);
     mtag tab "guard";
     stag tab "c_rhs" [] (fun tab -> process_expression tab c_rhs)
@@ -154,32 +154,26 @@ and print_case tab {Typedtree.c_lhs; c_guard; c_rhs} =
 and process_attribute tab (string_loc, payload) =
     stag tab "attribute" [("string_loc", dump_string_loc string_loc)] (fun tab ->
         match payload with
-        | Parsetree.PStr structure -> tag tab "PStr" []
-        | PTyp core_type  (* : T *) -> tag tab "PTyp" []
-        | PPat (pattern, expression_option) (* ? P  or  ? P when E *) -> tag tab "PPat" []
+        | Parsetree.PStr _structure -> mtag tab "PStr"
+        | PTyp _core_type  (* : T *) -> mtag tab "PTyp"
+        | PPat (_pattern, _expression_option) (* ? P  or  ? P when E *) -> mtag tab "PPat"
         | PSig _ -> mtag tab "PSig"
     )
 
-and process_label_description tab { Types.lbl_name(* Short name *);
-                                        lbl_res;                 (* Type of the result *)
-                                        lbl_arg;                 (* Type of the argument *)
-                                        lbl_mut;              (* Is this a mutable field? *)
-                                        lbl_pos;                       (* Position in block *)
-                                        lbl_all;   (* All the labels in this type *)
-                                        lbl_repres;  (* Representation for this record *)
-                                        lbl_private;          (* Read-only field? *)
-                                        lbl_loc;
-                                        lbl_attributes } =
+and process_label_description tab { Types.lbl_name (* Short name *);
+                                    lbl_arg;       (* Type of the argument *)
+                                    lbl_loc;
+                                    _ } =
     tag tab "label_description" [("lbl_name", lbl_name); ("lbl_loc", dump_loc lbl_loc); ("lbl_res", "__");("lbl_arg", dump_type lbl_arg); ("lbl_mut", "");("lbl_pos", "");("lbl_all", "");("lbl_repres", "");("lbl_private", "");]
 
-and process_expression tab { exp_desc; exp_loc; exp_extra; exp_type; exp_env; exp_attributes } =
+and process_expression tab { exp_desc; exp_loc; exp_env; _(*exp_type; exp_attributes; exp_extra*) } =
 (*    Printf.printf "%sexpression %s\n" indent (dump_loc exp_loc);*)
     match exp_desc with
     | Texp_ident (p(*Path.t*), lil(*Longident.t loc*), vd(*Types.value_description*)) ->
         stag tab "Texp_ident" [("path", dump_path p); ("exp_loc", dump_loc exp_loc); ("longident_loc", dump_longident_loc lil)] (fun tab ->
             process_value_description tab (Ident.create "xxx") vd
         )
-    | Texp_constant constant -> mtag tab "Texp_constant"
+    | Texp_constant _constant -> mtag tab "Texp_constant"
     | Texp_let (rec_flag, value_binding_list, expression) ->
         stag tab "Texp_let" [("exp_loc", dump_loc exp_loc); ("rec_flag", dump_rec_flag rec_flag)] (fun tab ->
             stag tab "value_binding_list" [] (fun tab ->

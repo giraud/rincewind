@@ -3,7 +3,7 @@ open Types
 
 let process_pattern_desc pat_desc =
   match pat_desc with
-    | Tpat_var (ident, {Location.txt; loc}) ->
+    | Tpat_var (ident, {Location.loc; _(*txt*)}) ->
         let {Location.loc_ghost; _} = loc in (
         match loc_ghost with
         | true -> None
@@ -11,7 +11,7 @@ let process_pattern_desc pat_desc =
     | _ -> None
 
 let extract_make_type mod_typ =
-    let first l = match l with | [] -> None | hd :: tl -> hd in
+    let first l = match l with | [] -> None | hd :: _tl -> hd in
 
     match mod_typ with
     | Mty_signature signature ->
@@ -24,14 +24,14 @@ let extract_make_type mod_typ =
         first x'
     | _ -> None
 
-let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
+let rec process_expression {exp_loc; exp_desc; exp_env; _} =
   match exp_desc with
     | Texp_ident (path, {Asttypes.txt; loc}, {Types.val_type; val_loc; _}) ->
         let {Location.loc_ghost; _} = exp_loc in
         (match loc_ghost with
         | true -> ()
         | false -> Printf.printf "Id|%s|%s|%s|%s\n" (Formatter.format_location loc) (Formatter.format_lident txt) (Formatter.format_path path) (Formatter.format_type val_type))
-    | Texp_constant c -> ()
+    | Texp_constant _c -> ()
     | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
         List.iter (process_value_binding exp_env) vbl;
         process_expression e
@@ -48,9 +48,9 @@ let rec process_expression {exp_loc; exp_desc; exp_type; exp_env; _} =
         process_expression e;
         List.iter process_case cl;
         List.iter process_case cl';
-    | Texp_try (e, cl) -> ()
-    | Texp_tuple (el) -> ()
-    | Texp_construct (cloc, cd, expression_list) ->
+    | Texp_try (_e, _cl) -> ()
+    | Texp_tuple (_el) -> ()
+    | Texp_construct (_cloc, _cd, expression_list) ->
         List.iter process_expression expression_list
     | Texp_variant (l, eo) -> ()
     | Texp_record  { fields ; extended_expression; _ } ->
