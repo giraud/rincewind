@@ -36,7 +36,7 @@ jobs:
   steps:
   #- template: .ci/restore-build-cache.yml
   - template: .ci/esy-build-steps.yml
-  - template: .ci/publish-build-cache.yml
+  - template: .ci/publish-build.yml
 
 - job: Windows
   timeoutInMinutes: 0
@@ -51,7 +51,7 @@ jobs:
   steps:
   #- template: .ci/restore-build-cache.yml
   - template: .ci/esy-build-steps.yml
-  - template: .ci/publish-build-cache.yml
+  - template: .ci/publish-build.yml
 
 - job: Release
   timeoutInMinutes: 0
