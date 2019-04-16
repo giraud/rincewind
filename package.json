@@ -1,7 +1,7 @@
 {
-  "name": "rincewind-ocaml",
+  "name": "rincewind",
   "version": "0.1.0",
-  "description": "OCaml workflow with Esy",
+  "description": "Cmt annotation extractor",
   "license": "MIT",
   "esy": {
     "build": "dune build -p #{self.name}",

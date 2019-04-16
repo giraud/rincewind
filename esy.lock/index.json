@@ -1,10 +1,10 @@
 {
   "checksum": "38e09caf89eedbec9843f2349f551ce9",
-  "root": "rincewind-ocaml@link-dev:./package.json",
+  "root": "rincewind@link-dev:./package.json",
   "node": {
-    "rincewind-ocaml@link-dev:./package.json": {
-      "id": "rincewind-ocaml@link-dev:./package.json",
-      "name": "rincewind-ocaml",
+    "rincewind@link-dev:./package.json": {
+      "id": "rincewind@link-dev:./package.json",
+      "name": "rincewind",
       "version": "link-dev:./package.json",
       "source": {
         "type": "link-dev",
@@ -14,7 +14,7 @@
       "overrides": [],
       "dependencies": [
         "pesy@github:esy/pesy#ba6359f25621280a8105d2ffc99d75d849c0d95a@d41d8cd9",
-        "ocaml@4.6.10@d41d8cd9", "@reason-native/rely@1.3.1@d41d8cd9",
+        "ocaml@4.6.10@d41d8cd9", "@reason-native/rely@2.0.0@d41d8cd9",
         "@opam/dune@opam:1.9.1@61bdaadf"
       ],
       "devDependencies": [ "ocaml@4.6.10@d41d8cd9" ]
@@ -89,14 +89,14 @@
       "dependencies": [],
       "devDependencies": []
     },
-    "@reason-native/rely@1.3.1@d41d8cd9": {
-      "id": "@reason-native/rely@1.3.1@d41d8cd9",
+    "@reason-native/rely@2.0.0@d41d8cd9": {
+      "id": "@reason-native/rely@2.0.0@d41d8cd9",
       "name": "@reason-native/rely",
-      "version": "1.3.1",
+      "version": "2.0.0",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://registry.npmjs.org/@reason-native/rely/-/rely-1.3.1.tgz#sha1:f57050aac6887196d1a41f0d42c7b5ec0adee271"
+          "archive:https://registry.npmjs.org/@reason-native/rely/-/rely-2.0.0.tgz#sha1:03d741cb03c88c79c11f14e4157d6ae13222860f"
         ]
       },
       "overrides": [],
