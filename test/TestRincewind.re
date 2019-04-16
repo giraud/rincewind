@@ -24,6 +24,7 @@ let print_info = (fname) => {
 describe("my first test suite", ({test, _}) =>
   test("1 + 1 should equal 2", ({expect}) =>
     {
+        let buf = Batteries.BatBuffer.create(16);
         print_info(".TestRincewind.eobjs/byte/Let.cmt");
         expect.int(1 + 1).toBe(2);
     }

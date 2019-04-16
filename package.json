@@ -36,10 +36,11 @@
     "@opam/dune": "*",
     "ocaml": "~4.06.1",
     "pesy": "*",
+    "@opam/batteries": "*",
     "@reason-native/rely": "*"
   },
   "devDependencies": {
-    "ocaml": "~4.06.1"
+    "ocaml": "~4.06.1",
   },
   "resolutions": {
     "pesy": "esy/pesy#ba6359f25621280a8105d2ffc99d75d849c0d95a"
