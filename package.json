@@ -35,7 +35,7 @@
     }
   },
   "scripts": {
-    "package": "esy build&& esy cp \"#{self.target_dir}/default/bin/rincewind.exe\" distrib/rincewind.exe",
+    "package": "esy build&& esy cp \"#{self.target_dir}/default/executable/rincewind.exe\" _release/rincewind.exe",
     "test": "esy b dune runtest"
   },
   "dependencies": {
