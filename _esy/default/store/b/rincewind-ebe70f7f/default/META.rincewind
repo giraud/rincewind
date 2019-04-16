@@ -1,9 +1,0 @@
-package "lib" (
-  directory = "lib"
-  description = ""
-  requires = "compiler-libs.common str"
-  archive(byte) = "RinceLib.cma"
-  archive(native) = "RinceLib.cmxa"
-  plugin(byte) = "RinceLib.cma"
-  plugin(native) = "RinceLib.cmxs"
-)
