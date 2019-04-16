@@ -15,8 +15,8 @@ steps:
     displayName: 'esy build'
   - script: esy test
     displayName: 'esy test'
-  - script: esy x rincewind.exe
-    displayName: 'Run the main binary'
+  #- script: esy x rincewind.exe
+  #  displayName: 'Run the main binary'
   - script: esy ls-libs
     continueOnError: true
     displayName: 'Show all libraries including this package lib'
