@@ -7,3 +7,4 @@ steps:
     inputs:
         pathToPublish: _release/rincewind_$(os)$(ocamlversion)-$(appversion).exe
         artifactName: 'rincewind_$(os)$(ocamlversion)-$(appversion).exe'
+        publishLocation: 'filePath'
