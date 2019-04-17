@@ -18,5 +18,5 @@ steps:
     continueOnError: true
   - script: esy mkdir -p _release/final
     displayName: 'Create final dir'
-  - script: esy cp "#{self.target_dir}/default/executable/rincewind.exe" _release/final/rincewind_$(os)$(ocamlversion)-$(appversion).exe
+  - script: esy cp "#{self.target_dir}/default/executable/rincewind.exe" $(Build.ArtifactStagingDirectory)/rincewind_$(os)$(ocamlversion)-$(appversion).exe
     displayName: 'Copy release'
