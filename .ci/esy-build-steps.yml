@@ -16,5 +16,7 @@ steps:
   - script: esy release
     displayName: 'Creation of Prebuilt Binary Releases'
     continueOnError: true
-  - script: esy cp "#{self.target_dir}/default/executable/rincewind.exe" _release/rincewind_$(os)$(ocamlversion)-$(appversion).exe
+  - script: esy mkdir -p _release/final
+    displayName: 'Create final dir'
+  - script: esy cp "#{self.target_dir}/default/executable/rincewind.exe" _release/final/rincewind_$(os)$(ocamlversion)-$(appversion).exe
     displayName: 'Copy release'

@@ -67,5 +67,5 @@ jobs:
     - task: PublishBuildArtifacts@1
       displayName: 'Release Package'
       inputs:
-          PathtoPublish: '_release'
+          PathtoPublish: $(Build.ArtifactStagingDirectory)
           ArtifactName: npm-package
