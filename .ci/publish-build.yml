@@ -5,6 +5,7 @@ steps:
     displayName: 'Publish build'
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     inputs:
-        pathToPublish: _release/rincewind_$(os)$(ocamlversion)-$(appversion).exe
+        pathToPublish: _release/rincewind.exe
         artifactName: 'rincewind_$(os)$(ocamlversion)-$(appversion).exe'
         publishLocation: 'filePath'
+        targetPath: _release
