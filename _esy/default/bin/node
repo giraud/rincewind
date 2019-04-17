@@ -1,4 +1,0 @@
-#!/bin/sh
-export ESY__NODE_BIN_PATH="/media/donnees/dev/rincewind/_esy/default/bin"
-exec "/tmp/fnm-shell-9829080/bin/node" -r "/media/donnees/dev/rincewind/_esy/default/pnp.js" "$@"
-              

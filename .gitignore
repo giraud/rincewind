@@ -2,8 +2,8 @@ npm-debug.log
 .merlin
 yarn-error.log
 node_modules/
-_build
 _release
+_esy
 rincewind.install
 *.install
 .idea/
