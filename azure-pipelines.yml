@@ -1,8 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 name: $(Build.SourceVersion)
 variables:
   appversion: 0.5-dev
@@ -19,7 +14,6 @@ jobs:
     ESY__CACHE_SOURCE_TARBALL_PATH: /home/vsts/.esy/source/i
 
   steps:
-  #- template: .ci/restore-build-cache.yml
   - template: .ci/esy-build-steps.yml
   - template: .ci/publish-build.yml
 
@@ -34,7 +28,6 @@ jobs:
     ESY__CACHE_SOURCE_TARBALL_PATH: /Users/vsts/.esy/source/i
 
   steps:
-  #- template: .ci/restore-build-cache.yml
   - template: .ci/esy-build-steps.yml
   - template: .ci/publish-build.yml
 
@@ -49,7 +42,6 @@ jobs:
     ESY__CACHE_SOURCE_TARBALL_PATH: C:\Users\VssAdministrator\.esy\source\i
 
   steps:
-  #- template: .ci/restore-build-cache.yml
   - template: .ci/esy-build-steps.yml
   - template: .ci/publish-build.yml
 

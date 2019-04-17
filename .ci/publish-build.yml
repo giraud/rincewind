@@ -1,8 +1,7 @@
 steps:
-  - task: CopyFiles@2
-    displayName: 'Copy exe'
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish os exe'
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     inputs:
-      sourceFolder: $(Build.SourcesDirectory)/_release/final
-      targetFolder: $(Build.ArtifactStagingDirectory)
-      flattenFolder: true
+      PathtoPublish: $(Build.ArtifactStagingDirectory)
+      ArtifactName: rincewind_$(os)
