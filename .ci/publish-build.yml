@@ -5,6 +5,5 @@ steps:
     displayName: 'Publish build'
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     inputs:
-        pathToPublish: _release/rincewind.exe
+        pathToPublish: _release/rincewind_$(os)$(ocamlversion)-$(appversion).exe
         artifactName: 'rincewind_$(os)$(ocamlversion)-$(appversion).exe'
-        publishLocation: 'Azure Pipelines/TFS'
