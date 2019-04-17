@@ -7,5 +7,5 @@ steps:
     inputs:
         pathToPublish: _release/rincewind.exe
         artifactName: 'rincewind_$(os)$(ocamlversion)-$(appversion).exe'
-        publishLocation: 'filePath'
+        publishLocation: 'Azure Pipelines/TFS'
         targetPath: _release
