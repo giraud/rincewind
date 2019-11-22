@@ -1,11 +1,10 @@
-npm-debug.log
 .merlin
-yarn-error.log
+.idea/
+esy.lock/
 node_modules/
 _release
 _esy
 rincewind.install
 *.install
-.idea/
 *.iml
 *.cmtout

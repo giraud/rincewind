@@ -1,8 +1,8 @@
-name: CI
+name: Build Rincewind executables
 on: [push]
 jobs:
   run:
-    name: Tests
+    name: Build
     runs-on: ${{ matrix.operating-system }}
     strategy:
       matrix:
@@ -10,14 +10,11 @@ jobs:
         ocaml-version: [ '4.06.1' ]
     steps:
     - uses: actions/checkout@master
-    - uses: avsm/setup-ocaml@v1.0
+    - uses: avsm/setup-ocaml@master
       with:
         ocaml-version: ${{ matrix.ocaml-version }}
-    - name: Packages
-      run: opam depext -yt yaml
-    - name: Dependencies
-      run: opam install -t . --deps-only
-    - name: Build
-      run: opam exec -- dune build
-    - name: Test
-      run: opam exec -- dune runtest
+    - run: opam pin add hello.dev -n .
+    - run: opam depext -yt hello
+    - run: opam install -t . --deps-only
+    - run: opam exec -- dune build
+    - run: opam exec -- dune runtest
