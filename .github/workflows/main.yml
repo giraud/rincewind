@@ -13,6 +13,5 @@ jobs:
     - uses: avsm/setup-ocaml@master
       with:
         ocaml-version: ${{ matrix.ocaml-version }}
-    - run: opam install
     - run: opam exec -- dune build
     - run: opam exec -- dune runtest
