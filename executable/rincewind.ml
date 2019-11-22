@@ -1,5 +1,5 @@
 (**
- Print decoded file info on standard stream. File can be one of:
+ Print decoded file info on a standard stream. File can be one of:
   .cmi   Compiled module interface from a corresponding .mli source file.
   .cmt   Typed abstract syntax tree for module implementations.
   .cmti  Typed abstract syntax tree for module interfaces.
