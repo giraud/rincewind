@@ -13,5 +13,7 @@ jobs:
     - uses: avsm/setup-ocaml@master
       with:
         ocaml-version: ${{ matrix.ocaml-version }}
+    - run: opam pin add rincewind.dev -n .
+    - run: opam depext -yt rincewind
     - run: opam exec -- dune build
     - run: opam exec -- dune runtest
