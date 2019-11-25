@@ -6,7 +6,7 @@ license: "MIT"
 homepage: "https://github.com/giraud/rincewind"
 bug-reports: "https://github.com/giraud/rincewind"
 depends: [
-    "ocaml" {>= "4.02.3"}
+    "ocaml" {>= "4.06.1"}
     "dune"
     "cppo"
 ]

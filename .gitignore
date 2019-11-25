@@ -3,6 +3,7 @@
 esy.lock/
 node_modules/
 _release
+_build
 _esy
 rincewind.install
 *.install
