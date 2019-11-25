@@ -1,7 +1,10 @@
 opam-version: "2.0"
+maintainer: "giraud.contact@yahoo.fr"
 authors: [ "Hervé Giraud" ]
 synopsis: "Simple Cmt information extractor"
-licence: "MIT"
+license: "MIT"
+homepage: "https://github.com/giraud/rincewind"
+bug-reports: "https://github.com/giraud/rincewind"
 depends: [
     "ocaml" {>= "4.02.3"}
     "dune"

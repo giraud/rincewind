@@ -6,7 +6,7 @@
   .cmti  Typed abstract syntax tree for module interfaces.
 *)
 let print_info dump fname =
-    let cmio, cmto = Cmt_format.read fname in
+    let _cmio, cmto = Cmt_format.read fname in
     match cmto with
         | Some cmt when dump -> RinceLib.CmtDumper.print_cmt cmt
         | Some cmt -> RinceLib.CmtExtractor.read_cmt stdout cmt
