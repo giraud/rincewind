@@ -27,7 +27,7 @@ module Driver = struct
             Arg.parse spec (fun s -> args := s :: !args) usage_message;
             match !args with
                 | [fname] -> print_info !dump fname
-                | _ -> failwith "Wrong number of arguments."
+                | _ -> failwith ("(" ^ version ^ ") Wrong number of arguments.")
         with e ->
             let s = match e with Failure s -> s | _ -> Printexc.to_string e in
             Printf.eprintf "Failure: %s\n%!" s;

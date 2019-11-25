@@ -257,8 +257,8 @@ and process_expression tab { exp_desc; exp_loc; exp_env; _(*exp_type; exp_attrib
     | Texp_extension_constructor (_, _) -> mtag tab "Texp_extension_constructor"
 
 #if OCAML_MINOR = 6
-and process_value_binding_pattern tab {Typedtree.pat_desc; pat_loc; pat_type; pat_env; (*pat_extra; pat_attributes*)} =
-  stag tab "value_binding_pattern" [("pat_loc", dump_loc pat_loc); ("pat_type", Formatter.clean_type (print_type_scheme pat_env pat_type); ("pat_attributes", "__"); ("pat_extra", "__"); ("pat_env", "__")] (fun tab ->
+and process_value_binding_pattern tab {Typedtree.pat_desc; pat_loc; pat_type; pat_env; _ (*pat_extra; pat_attributes*)} =
+  stag tab "value_binding_pattern" [("pat_loc", dump_loc pat_loc); ("pat_type", Formatter.clean_type (print_type_scheme pat_env pat_type)); ("pat_attributes", "__"); ("pat_extra", "__"); ("pat_env", "__")] (fun tab ->
 #elif OCAML_MINOR = 7
 and process_value_binding_pattern tab {Typedtree.pat_desc; pat_loc; _ (*pat_type; pat_env; pat_extra; pat_attributes*)} =
   stag tab "value_binding_pattern" [("pat_loc", dump_loc pat_loc); ("pat_type", Formatter.clean_type " zzz (print_type_scheme pat_env pat_type)"); ("pat_attributes", "__"); ("pat_extra", "__"); ("pat_env", "__")] (fun tab ->
