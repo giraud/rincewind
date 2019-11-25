@@ -4,7 +4,6 @@ jobs:
   run:
     name: Build
     runs-on: ${{ matrix.operating-system }}
-    version: '0.5-dev'
     strategy:
       matrix:
         operating-system: [macos-latest, ubuntu-latest, windows-latest]
@@ -20,5 +19,5 @@ jobs:
     - run: opam exec -- dune build
     - uses: actions/upload-artifact@master
       with:
-        name: rincewind_${{ matrix.operating-system }}-${{ matrix.ocaml-version }}-${{ version }}.exe
+        name: rincewind_${{ matrix.operating-system }}-${{ matrix.ocaml-version }}-0.5dev.exe
         path: _build/default/bin/rincewind.exe
