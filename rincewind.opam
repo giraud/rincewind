@@ -8,6 +8,7 @@ bug-reports: "https://github.com/giraud/rincewind"
 depends: [
     "ocaml" {>= "4.02.3"}
     "dune"
+    "cppo"
 ]
 build: [
     ["dune" "subst"] {pinned}
