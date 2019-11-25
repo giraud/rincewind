@@ -75,7 +75,11 @@ let dump_value_kind kind =
     | Val_ivar _(*mutable_flag * string*) -> "Instance variable (mutable ?)"
     | Val_self _(*(Ident.t * type_expr) Meths.t ref * (Ident.t * mutable_flag * virtual_flag * type_expr) Vars.t ref * string * type_expr*) -> "Self"
     | Val_anc _(*(string * Ident.t) list * string*) -> "Ancestor"
+#if OCAML_MINOR < 8
     | Val_unbound                         -> "Unbound variable"
+#else
+    | Val_unbound _                       -> "Unbound variable"
+#endif
     in
     "«kind:" ^ k ^ "»"
 
@@ -103,6 +107,18 @@ and dump_module_declaration tab {Types.md_type; _(*md_attributes; md_loc*)} =
     process_module_type tab md_type
 
 and process_signature_item tab si = match si with
+#if OCAML_MINOR >= 8
+  | Sig_value (id, vd(*value_description*), _visibility) ->
+        stag tab "Sig_value" [("id", dump_ident id);] (fun tab -> process_value_description tab id vd)
+  | Sig_type (id, type_declaration, rec_status, _visibility) ->
+        tag tab "Sig_type" [("id", dump_ident id); ("rec_status", dump_rec_status rec_status); ("type_declaration", Formatter.format_type_declaration id type_declaration)]
+  | Sig_typext (_id, _ec, _es, _visibility) -> mtag tab "Sig_typext"
+  | Sig_module (_id, _mp, md, _rs, _visibility) -> stag tab "Sig_module" [] (fun tab -> dump_module_declaration tab md)
+  | Sig_modtype (id, modtype_declaration, _visibility) ->
+        stag tab "Sig_modtype" [("id", dump_ident id)] (fun tab -> process_modtype_declaration tab modtype_declaration)
+  | Sig_class (_id, _cd, _rs, _visibility) -> mtag tab "Sig_class"
+  | Sig_class_type (_id, _ctd, _rs, _visibility) -> mtag tab "Sig_class_type"
+#else
   | Sig_value (id, vd(*value_description*)) ->
         stag tab "Sig_value" [("id", dump_ident id);] (fun tab -> process_value_description tab id vd)
   | Sig_type (id, type_declaration, rec_status) ->
@@ -113,24 +129,34 @@ and process_signature_item tab si = match si with
         stag tab "Sig_modtype" [("id", dump_ident id)] (fun tab -> process_modtype_declaration tab modtype_declaration)
   | Sig_class (_id, _cd, _rs) -> mtag tab "Sig_class"
   | Sig_class_type (_id, _ctd, _rs) -> mtag tab "Sig_class_type"
+#endif
 
 and dump_summary s = match s with
   | Env.Env_empty -> ""
   | Env_value (su, id, vd(*value_description*)) -> "<value:" ^ (dump_value_description id vd)^ "> " ^ (dump_summary su)
   | Env_type (su, id, td) -> "<" ^ (Formatter.format_type_declaration id td) ^ "> " ^ (dump_summary su)
   | Env_extension (su, id, _ec) -> "<extension:" ^ (dump_ident id) ^ "> " ^ (dump_summary su)
+#if OCAML_MINOR >= 8
+  | Env_module (_su, _id, _mp, _md(*module_declaration*)) -> "" (*"<module:" ^ (dump_ident id) ^ ":" ^ (dump_module_declaration md) ^ "> " ^ (dump_summary su)*)
+#else
   | Env_module (_su, _id, _md(*module_declaration*)) -> "" (*"<module:" ^ (dump_ident id) ^ ":" ^ (dump_module_declaration md) ^ "> " ^ (dump_summary su)*)
+#endif
   | Env_modtype _ (* summary * Ident.t * modtype_declaration *) -> "Env_modtype"
   | Env_class _ (* summary * Ident.t * class_declaration *) -> "class"
   | Env_cltype _ (* summary * Ident.t * class_type_declaration *) -> "cltype"
-#if OCAML_MINOR = 6
+#if OCAML_MINOR >= 8
   | Env_open (su(*summary*), pa(*Path.t*)) -> "<open:" ^ (dump_path pa) ^ "> " ^ (dump_summary su)
-#elif OCAML_MINOR = 7
+#elif OCAML_MINOR >= 7
   | Env_open (su(*summary*), _mo, pa(*Path.t*)) -> "<open:" ^ (dump_path pa) ^ "> " ^ (dump_summary su)
+#else
+  | Env_open (su(*summary*), pa(*Path.t*)) -> "<open:" ^ (dump_path pa) ^ "> " ^ (dump_summary su)
 #endif
   | Env_functor_arg _ (* summary * Ident.t *) -> "functor_arg"
   | Env_constraints (_, _) -> "constraints"
   | Env_copy_types (_, _) -> "copy_types"
+#if OCAML_MINOR >= 8
+  | Env_persistent (_su, _id) -> "Env_persistent"
+#endif
 
 and dump_env env = dump_summary (Env.summary env)
 
@@ -148,6 +174,9 @@ and process_pattern_desc tab pat_desc =
     | Tpat_array (_patternl) -> mtag tab "Tpat_array"
     | Tpat_or (_pattern, _pattern', _row_desc) -> mtag tab "Tpat_or"
     | Tpat_lazy (_pattern) -> mtag tab "Tpat_lazy"
+#if OCAML_MINOR >= 8
+    | Tpat_exception _ -> mtag tab "Tpat_exception"
+#endif
 
 and print_case tab {Typedtree.c_lhs; c_rhs; _(*c_guard; *)} =
     let {Typedtree.pat_desc; pat_loc; _ (*pat_extra; pat_env; pat_attributes;pat_type;*)} = c_lhs in
@@ -259,7 +288,7 @@ and process_expression tab { exp_desc; exp_loc; exp_env; _(*exp_type; exp_attrib
 #if OCAML_MINOR = 6
 and process_value_binding_pattern tab {Typedtree.pat_desc; pat_loc; pat_type; pat_env; _ (*pat_extra; pat_attributes*)} =
   stag tab "value_binding_pattern" [("pat_loc", dump_loc pat_loc); ("pat_type", Formatter.clean_type (print_type_scheme pat_env pat_type)); ("pat_attributes", "__"); ("pat_extra", "__"); ("pat_env", "__")] (fun tab ->
-#elif OCAML_MINOR = 7
+#elif OCAML_MINOR >= 7
 and process_value_binding_pattern tab {Typedtree.pat_desc; pat_loc; _ (*pat_type; pat_env; pat_extra; pat_attributes*)} =
   stag tab "value_binding_pattern" [("pat_loc", dump_loc pat_loc); ("pat_type", Formatter.clean_type " zzz (print_type_scheme pat_env pat_type)"); ("pat_attributes", "__"); ("pat_extra", "__"); ("pat_env", "__")] (fun tab ->
 #endif

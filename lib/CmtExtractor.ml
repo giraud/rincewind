@@ -9,10 +9,8 @@ let process_pattern_desc pat_desc =
         | true -> None
 #if OCAML_MINOR = 6
         | false -> Some("Va|" ^ (Formatter.format_location loc) ^ "|" ^ ident.name ))
-#elif OCAML_MINOR = 7
+#elif OCAML_MINOR >= 7
         | false -> Some("Va|" ^ (Formatter.format_location loc) ^ "|" ^ (Ident.name ident) ))
-#else
-  #error "This version of OCaml is not supported."
 #endif
     | _ -> None
 
@@ -27,6 +25,8 @@ let extract_make_type mod_typ =
             | Sig_value(ident, {val_type; _}) when (Ident.name ident) = "make" -> Some(Formatter.format_type val_type)
 #elif OCAML_MINOR = 7
             | Sig_value(ident, {val_type; _}) when (Ident.name ident) = "make" -> Some(Formatter.format_type val_type)
+#else
+            | Sig_value(ident, {val_type; _}, _vis) when (Ident.name ident) = "make" -> Some(Formatter.format_type val_type)
 #endif
             | _ -> None)
             signature in
@@ -54,10 +54,16 @@ let rec process_expression oc {exp_loc; exp_desc; exp_env; _} =
             | Some e -> process_expression oc e in
         process_expression oc e;
         List.iter process_labels leol
+#if OCAML_MINOR >= 8
+    | Texp_match (e, cl, _partial) ->
+        process_expression oc e;
+        List.iter (process_case oc) cl;
+#else
     | Texp_match (e, cl, cl', _partial) ->
         process_expression oc e;
         List.iter (process_case oc) cl;
         List.iter (process_case oc) cl';
+#endif
     | Texp_try (_e, _cl) -> ()
     | Texp_tuple (_el) -> ()
     | Texp_construct (_cloc, _cd, expression_list) ->
@@ -86,7 +92,11 @@ let rec process_expression oc {exp_loc; exp_desc; exp_env; _} =
     | Texp_instvar (_p, _p', _loc) -> ()
     | Texp_setinstvar (_p, _p', _loc, _e) -> ()
     | Texp_override (_p, _el) -> ()
+#if OCAML_MINOR >= 8
+    | Texp_letmodule (_i, _loc, _tmp, _me, _e) -> ()
+#else
     | Texp_letmodule (_i, _loc, _me, _e) -> ()
+#endif
     | Texp_assert e -> process_expression oc e
     | Texp_lazy e -> process_expression oc e
     | Texp_object (_cs, _sl) -> ()
@@ -94,6 +104,11 @@ let rec process_expression oc {exp_loc; exp_desc; exp_env; _} =
     | Texp_unreachable -> ()
     | Texp_letexception (_, _) -> ()
     | Texp_extension_constructor (_, _) -> ()
+#if OCAML_MINOR >= 8
+    | Texp_letop _l -> ()
+    | Texp_open (_od, _e) -> ()
+#endif
+
 
 and process_case oc {c_rhs(*expression*); _} =
   process_expression oc c_rhs
@@ -131,9 +146,11 @@ and process_structure_item oc {str_desc; str_env; _(*str_loc;*)} =
     match str_desc with
     | Tstr_value (_, vbl) -> List.iter (process_value_binding oc str_env) vbl
     | Tstr_module module_binding -> process_module_binding oc str_env module_binding
+#if OCAML_MINOR < 8
     | Tstr_open {Typedtree.open_txt; _} ->
         let {Asttypes.loc; txt} = open_txt in
         Printf.fprintf oc "Op|%s|%s\n" (Formatter.format_location loc) (Longident.last txt)
+#endif
     | _ -> ()
 
 let read_cmt oc cmt =
