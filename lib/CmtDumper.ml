@@ -123,7 +123,11 @@ and dump_summary s = match s with
   | Env_modtype _ (* summary * Ident.t * modtype_declaration *) -> "Env_modtype"
   | Env_class _ (* summary * Ident.t * class_declaration *) -> "class"
   | Env_cltype _ (* summary * Ident.t * class_type_declaration *) -> "cltype"
+#if OCAML_MINOR = 6
   | Env_open (su(*summary*), pa(*Path.t*)) -> "<open:" ^ (dump_path pa) ^ "> " ^ (dump_summary su)
+#elif OCAML_MINOR = 7
+  | Env_open (su(*summary*), _mo, pa(*Path.t*)) -> "<open:" ^ (dump_path pa) ^ "> " ^ (dump_summary su)
+#endif
   | Env_functor_arg _ (* summary * Ident.t *) -> "functor_arg"
   | Env_constraints (_, _) -> "constraints"
   | Env_copy_types (_, _) -> "copy_types"
@@ -252,8 +256,13 @@ and process_expression tab { exp_desc; exp_loc; exp_env; _(*exp_type; exp_attrib
     | Texp_letexception (_, _) -> mtag tab "Texp_letexception"
     | Texp_extension_constructor (_, _) -> mtag tab "Texp_extension_constructor"
 
-and process_value_binding_pattern tab {Typedtree.pat_desc; pat_loc; pat_type; pat_env; _(*pat_extra; pat_attributes*)} =
-  stag tab "value_binding_pattern" [("pat_loc", dump_loc pat_loc); ("pat_type", Formatter.clean_type (print_type_scheme pat_env pat_type)); ("pat_attributes", "__"); ("pat_extra", "__"); ("pat_env", "__")] (fun tab ->
+#if OCAML_MINOR = 6
+and process_value_binding_pattern tab {Typedtree.pat_desc; pat_loc; pat_type; pat_env; (*pat_extra; pat_attributes*)} =
+  stag tab "value_binding_pattern" [("pat_loc", dump_loc pat_loc); ("pat_type", Formatter.clean_type (print_type_scheme pat_env pat_type); ("pat_attributes", "__"); ("pat_extra", "__"); ("pat_env", "__")] (fun tab ->
+#elif OCAML_MINOR = 7
+and process_value_binding_pattern tab {Typedtree.pat_desc; pat_loc; _ (*pat_type; pat_env; pat_extra; pat_attributes*)} =
+  stag tab "value_binding_pattern" [("pat_loc", dump_loc pat_loc); ("pat_type", Formatter.clean_type " zzz (print_type_scheme pat_env pat_type)"); ("pat_attributes", "__"); ("pat_extra", "__"); ("pat_env", "__")] (fun tab ->
+#endif
       process_pattern_desc tab pat_desc
   )
 

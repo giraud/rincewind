@@ -2,4 +2,5 @@
   (name RinceLib)
   (public_name rincewind.lib)
   (libraries str compiler-libs.common)
+  (preprocess (action (run %{bin:cppo} -V OCAML:%{ocaml_version} %{input-file})))
 )

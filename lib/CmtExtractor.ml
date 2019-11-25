@@ -7,7 +7,13 @@ let process_pattern_desc pat_desc =
         let {Location.loc_ghost; _} = loc in (
         match loc_ghost with
         | true -> None
+#if OCAML_MINOR = 6
         | false -> Some("Va|" ^ (Formatter.format_location loc) ^ "|" ^ ident.name ))
+#elif OCAML_MINOR = 7
+        | false -> Some("Va|" ^ (Formatter.format_location loc) ^ "|" ^ (Ident.name ident) ))
+#else
+  #error "This version of OCaml is not supported."
+#endif
     | _ -> None
 
 let extract_make_type mod_typ =
@@ -17,7 +23,11 @@ let extract_make_type mod_typ =
     | Mty_signature signature ->
         let x = List.map (fun signature_item ->
             match signature_item with
-            | Sig_value({name; _}, {val_type; _}) when name = "make" -> Some(Formatter.format_type val_type)
+#if OCAML_MINOR = 6
+            | Sig_value(ident, {val_type; _}) when (Ident.name ident) = "make" -> Some(Formatter.format_type val_type)
+#elif OCAML_MINOR = 7
+            | Sig_value(ident, {val_type; _}) when (Ident.name ident) = "make" -> Some(Formatter.format_type val_type)
+#endif
             | _ -> None)
             signature in
         let x' = List.filter (fun item -> match item with | None -> false | Some _ -> true) x in
@@ -133,4 +143,3 @@ let read_cmt oc cmt =
     match cmt_annots with
         | Implementation {str_items; _} -> List.iter (process_structure_item oc) str_items
         | _ -> ()
-
