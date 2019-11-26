@@ -17,7 +17,7 @@ module Driver = struct
 
     let dump = ref false
 
-    let version = "0.5-dev"
+    let version = "0.5"
     let usage_message = "Usage: rincewind.exe <filename>\n" ^ version
     let spec = Arg.align [ "-d", Arg.Set dump, " Dump mode" ]
 
