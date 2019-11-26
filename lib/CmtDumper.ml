@@ -184,9 +184,15 @@ and print_case tab {Typedtree.c_lhs; c_rhs; _(*c_guard; *)} =
     mtag tab "guard";
     stag tab "c_rhs" [] (fun tab -> process_expression tab c_rhs)
 
-and process_attribute tab (string_loc, payload) =
-    stag tab "attribute" [("string_loc", dump_string_loc string_loc)] (fun tab ->
-        match payload with
+#if OCAML_MINOR >= 8
+and process_attribute tab Parsetree.{attr_payload; attr_loc; _} =
+    let loc_str = dump_pos attr_loc.loc_start in
+#else
+and process_attribute tab (attr_loc, attr_payload) =
+    let loc_str = dump_string_loc attr_loc in
+#endif
+    stag tab "attribute" [("string_loc", loc_str)] (fun tab ->
+        match attr_payload with
         | Parsetree.PStr _structure -> mtag tab "PStr"
         | PTyp _core_type  (* : T *) -> mtag tab "PTyp"
         | PPat (_pattern, _expression_option) (* ? P  or  ? P when E *) -> mtag tab "PPat"
@@ -204,7 +210,11 @@ and process_expression tab { exp_desc; exp_loc; exp_env; _(*exp_type; exp_attrib
     match exp_desc with
     | Texp_ident (p(*Path.t*), lil(*Longident.t loc*), vd(*Types.value_description*)) ->
         stag tab "Texp_ident" [("path", dump_path p); ("exp_loc", dump_loc exp_loc); ("longident_loc", dump_longident_loc lil)] (fun tab ->
+#if OCAML_MINOR >= 8
+            process_value_description tab (Ident.create_local "xxx") vd
+#else
             process_value_description tab (Ident.create "xxx") vd
+#endif
         )
     | Texp_constant _constant -> mtag tab "Texp_constant"
     | Texp_let (rec_flag, value_binding_list, expression) ->
@@ -229,12 +239,20 @@ and process_expression tab { exp_desc; exp_loc; exp_env; _(*exp_type; exp_attrib
                 ) leol
             )
         )
+#if OCAML_MINOR >= 8
+    | Texp_match (expression, case_list, partial) ->
+        stag tab "Texp_match" [("exp_loc", dump_loc exp_loc); ("partial", dump_partial partial)] (fun tab ->
+            process_expression tab expression;
+            List.iter (print_case tab) case_list;
+        )
+#else
     | Texp_match (expression, case_list, case_list', partial) ->
         stag tab "Texp_match" [("exp_loc", dump_loc exp_loc); ("partial", dump_partial partial)] (fun tab ->
             process_expression tab expression;
             List.iter (print_case tab) case_list;
             List.iter (print_case tab) case_list';
         )
+#endif
     | Texp_try _(*expression * case list*) -> mtag tab "Texp_try"
     | Texp_tuple _(*expression list*) -> mtag tab  "Texp_tuple"
     | Texp_construct (lil(*Longident.t loc*), _cd(*constructor_description*), el(*expression list*)) ->
@@ -284,6 +302,10 @@ and process_expression tab { exp_desc; exp_loc; exp_env; _(*exp_type; exp_attrib
     | Texp_unreachable -> mtag tab "Texp_unreachable"
     | Texp_letexception (_, _) -> mtag tab "Texp_letexception"
     | Texp_extension_constructor (_, _) -> mtag tab "Texp_extension_constructor"
+#if OCAML_MINOR >= 8
+    | Texp_letop _ -> mtag tab "Texp_letop"
+    | Texp_open (_, _) -> mtag tab "Texp_open"
+#endif
 
 #if OCAML_MINOR = 6
 and process_value_binding_pattern tab {Typedtree.pat_desc; pat_loc; pat_type; pat_env; _ (*pat_extra; pat_attributes*)} =
@@ -321,7 +343,11 @@ and process_module_description tab _env mod_desc =
             process_expression tab expression
         )
 
+#if OCAML_MINOR >= 8
+and process_module_binding tab _env {Typedtree.mb_id; mb_name; mb_expr; mb_attributes; mb_loc; _} =
+#else
 and process_module_binding tab _env {Typedtree.mb_id; mb_name; mb_expr; mb_attributes; mb_loc} =
+#endif
     stag tab "module_binding" [("id", dump_ident mb_id); ("mb_name", dump_string_loc mb_name); ("mb_loc", dump_loc mb_loc)] (fun tab ->
         stag tab "mb_attributes" [] (fun tab -> List.iter (process_attribute tab) mb_attributes);
         let { Typedtree.mod_desc; mod_loc; mod_type; mod_env; _(*mod_attributes*) } = mb_expr in
@@ -331,8 +357,14 @@ and process_module_binding tab _env {Typedtree.mb_id; mb_name; mb_expr; mb_attri
             process_module_description tab mod_env mod_desc
     )
 
+#if OCAML_MINOR >= 8
+and process_open_description tab Typedtree.{open_expr; open_loc; _(*open_bound_items; open_override; open_env; open_attributes*)} =
+    let (open_path, open_txt) = open_expr in
+    tag tab "open_description" [("open_path", (dump_path open_path)); ("open_loc", dump_loc open_loc); ("open_txt", dump_longident_loc open_txt); ("open_override", "__"); ("open_attributes", "__")]
+#else
 and process_open_description tab {Typedtree.open_path; open_txt; open_loc; _(*open_override; open_attributes*)} =
     tag tab "open_description" [("open_path", (dump_path open_path)); ("open_loc", dump_loc open_loc); ("open_txt", dump_longident_loc open_txt); ("open_override", "__"); ("open_attributes", "__")]
+#endif
 
 and process_structure_item tab {str_desc; str_loc; str_env} =
     match str_desc with
@@ -351,10 +383,15 @@ and process_structure_item tab {str_desc; str_loc; str_env} =
         );
     | Tstr_recmodule (_mbl(*module_binding list*)) -> mtag tab "Tstr_recmodule"
     | Tstr_modtype (_mtd(*module_type_declaration*)) -> mtag tab "Tstr_modtype"
+#if OCAML_MINOR >= 8
+    | Tstr_open _(*open_description*) ->
+        mtag tab "Tstr_open"
+#else
     | Tstr_open od(*open_description*) ->
         stag tab "Tstr_open" [("str_loc", dump_loc str_loc); ("str_env", "__")] (fun tab ->
             process_open_description tab od
         );
+#endif
     | Tstr_class (_cl(*(cd(*class_declaration*), sl(*string list*), vf(*virtual_flag*)) list*)) -> mtag tab "Tstr_class"
     | Tstr_class_type (_ctl(*(i(*Ident.t*), sl(*string loc*), ctd(*class_type_declaration*)) list*)) -> mtag tab "Tstr_class_type"
     | Tstr_include (_id(*include_declaration*)) -> mtag tab "Tstr_include"
