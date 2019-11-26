@@ -1,4 +1,4 @@
 (test
     (name TestRincewind)
-    (libraries rincewind.lib rely.lib)
+    (libraries rincewind.lib alcotest)
 )

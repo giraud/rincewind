@@ -14,7 +14,7 @@ let extract oc fname =
         | Some cmt -> RinceLib.CmtExtractor.read_cmt oc cmt
         | _ -> Printf.printf "Can't read %s" fname
 
-let basedir = ".TestRincewind.eobjs/byte/"
+let basedir = ".TestRincewind.eobjs/byte"
 let out_ext = ".cmtout"
 
 let run_extractor testFile =

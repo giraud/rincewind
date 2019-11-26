@@ -17,6 +17,7 @@ jobs:
     - run: opam depext -yt rincewind
     - run: opam install -t . --deps-only
     - run: opam exec -- dune build
+    - run: opam exec -- dune runtest
     - uses: actions/upload-artifact@master
       with:
         name: rincewind_${{ matrix.operating-system }}-${{ matrix.ocaml-version }}-0.5dev.exe
