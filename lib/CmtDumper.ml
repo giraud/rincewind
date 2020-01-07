@@ -16,7 +16,7 @@ let tag indent name attrs =
 
 let atag indent name attr = printf "%s<%s val=\"%s\"/>\n" indent name attr
 let ttag indent name text = printf "%s<%s>%s</%s>\n" indent name text name
-let mtag indent name = atag indent "MISSING" name
+let mtag indent name = tag indent "SKIPPED" [("name", name)]
 
 
 let dump_partial p = match p with | Typedtree.Partial -> "Partial" | Total -> "Total"
@@ -404,10 +404,11 @@ let process_implementation tab {Typedtree.str_items; _(*str_type; str_final_env*
         List.iter (fun item -> process_structure_item tab item) str_items;
     )
 
-let print_cmt cmt =
+let print_meta cmt =
     let {
       Cmt_format.cmt_modname (* string *);
-      cmt_annots             (* binary_annots *);
+      (*cmt_value_dependencies (* (Types.value_description * Types.value_description) list *); *)
+      (*cmt_annots             (* binary_annots *);*)
       cmt_comments           (* (string * Location.t) list *);
       cmt_args               (* string array *);
       cmt_sourcefile         (* string option *);
@@ -419,31 +420,30 @@ let print_cmt cmt =
       cmt_interface_digest   (* Digest.t option *);
       cmt_use_summaries      (* bool *);
       _
-      (*cmt_value_dependencies (* (Types.value_description * Types.value_description) list *); *)
     } = cmt in
 
-    stag "" "doc" [] (fun tab ->
-        stag tab "meta" [] (fun tab ->
-            ttag tab "cmt_modname" cmt_modname;
-            atag tab "cmt_value_dependencies" "__DEPS__";
-            stag tab "cmt_comments" [] (fun tab -> (List.iter (fun (s, l) -> tag tab "comment" [("val", s); ("loc", dump_loc l)]) cmt_comments));
-            stag tab "cmt_args" [] (fun tab -> Array.iter (atag tab "arg") cmt_args);
-            atag tab "cmt_sourcefile" (Util.Option.getWithDefault "" cmt_sourcefile);
-            atag tab "cmt_builddir" cmt_builddir;
-            atag tab "cmt_loadpath" (Util.List.join ", " cmt_loadpath);
-            atag tab "cmt_source_digest" (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) cmt_source_digest);
-            stag tab "cmt_imports" [] (fun tab -> List.iter (fun (s, d) -> atag tab "import" ("'" ^ s ^ "':" ^ (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) d))) cmt_imports);
-            atag tab "cmt_interface_digest" (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) cmt_interface_digest);
-            atag tab "cmt_use_summaries" (string_of_bool cmt_use_summaries);
-            atag tab "cmt_initial_env" (dump_env cmt_initial_env);
-        );
-        stag tab "tree" [] (fun tab ->
-            match cmt_annots with
-            | Packed (_signature, _string_list) -> mtag tab "Packed"
-            | Implementation structure -> process_implementation tab structure
-            | Interface _signature -> mtag tab "Interface"
-            | Partial_implementation _binary_part_array -> mtag tab "Partial_implementation"
-            | Partial_interface _binary_part_array -> mtag tab "Partial_interface";
-        );
+    Printf.printf "cmt_modname|%s\n" cmt_modname;
+    Printf.printf "cmt_value_dependencies|%s\n" "--not-extracted--";
+    List.iteri (fun i (s, l) -> Printf.printf "cmt_comments.%s|%s\n" (string_of_int i) ("val=" ^ s ^ " / loc=" ^ (dump_loc l))) cmt_comments;
+    Array.iteri (fun i a ->  Printf.printf "cmt_args.%s|%s\n" (string_of_int i) a) cmt_args;
+    Printf.printf "cmt_sourcefile|%s\n" (Util.Option.getWithDefault "" cmt_sourcefile);
+    Printf.printf "cmt_builddir|%s\n" cmt_builddir;
+    Printf.printf "cmt_loadpath|%s\n" (Util.List.join ", " cmt_loadpath);
+    Printf.printf "cmt_source_digest|%s\n" (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) cmt_source_digest);
+    List.iteri (fun i (s, d) -> Printf.printf "cmt_imports.%s|%s\n" (string_of_int i) ("'" ^ s ^ "':" ^ (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) d))) cmt_imports;
+    Printf.printf "cmt_interface_digest|%s\n" (Util.Option.mapWithDefault "" (fun d -> Digest.to_hex d) cmt_interface_digest);
+    Printf.printf "cmt_use_summaries|%s\n" (string_of_bool cmt_use_summaries);
+    Printf.printf "cmt_initial_env|%s\n" (dump_env cmt_initial_env);;
+
+let print_cmt cmt =
+    let { Cmt_format.cmt_annots (* binary_annots *); _ } = cmt in
+
+    stag "" "tree" [("xmlns", "https://github.com/giraud/rincewind")] (fun tab ->
+        match cmt_annots with
+        | Packed (_signature, _string_list) -> mtag tab "Packed"
+        | Implementation structure -> process_implementation tab structure
+        | Interface _signature -> mtag tab "Interface"
+        | Partial_implementation _binary_part_array -> mtag tab "Partial_implementation"
+        | Partial_interface _binary_part_array -> mtag tab "Partial_interface";
     )
 
