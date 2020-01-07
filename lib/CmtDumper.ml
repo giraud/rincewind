@@ -438,6 +438,7 @@ let print_meta cmt =
 let print_cmt cmt =
     let { Cmt_format.cmt_annots (* binary_annots *); _ } = cmt in
 
+    Printf.printf "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
     stag "" "tree" [("xmlns", "https://github.com/giraud/rincewind")] (fun tab ->
         match cmt_annots with
         | Packed (_signature, _string_list) -> mtag tab "Packed"
