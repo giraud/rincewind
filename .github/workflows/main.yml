@@ -20,5 +20,5 @@ jobs:
     - run: opam exec -- dune runtest
     - uses: actions/upload-artifact@master
       with:
-        name: rincewind_${{ matrix.operating-system }}-${{ matrix.ocaml-version }}-0.5.exe
+        name: rincewind_${{ matrix.operating-system }}-${{ matrix.ocaml-version }}-0.6-snapshot.exe
         path: _build/default/bin/rincewind.exe
