@@ -1,16 +1,25 @@
 open Location
 
-let cr = Str.regexp "\n"
-let sp = Str.regexp "[ ]+"
+let quote_regexp = Str.regexp "\""
+let cr_regexp = Str.regexp "\n"
+let sp_regexp = Str.regexp "[ ]+"
 
-let clean_type str =
-  Str.global_replace sp " " (Str.global_replace cr " " str)
+let unquote str =
+  match (Str.first_chars str 1) with
+  | "\"" -> StringLabels.sub str ~pos:1 ~len:((StringLabels.length str) - 2)
+  | _ -> str
+
+let escape_string str =
+  Str.global_replace quote_regexp "'" str
+
+let normalize_string str =
+  Str.global_replace sp_regexp " " (Str.global_replace cr_regexp " " str)
 
 let format_type t =
-    clean_type (Format.asprintf "%a" Printtyp.type_scheme t)
+    normalize_string (Format.asprintf "%a" Printtyp.type_scheme t)
 
 let format_type_declaration id td =
-    clean_type (Format.asprintf "%a" (Printtyp.type_declaration id) td)
+    normalize_string (Format.asprintf "%a" (Printtyp.type_declaration id) td)
 
 let format_etype {Typedtree.exp_type; _} =
   format_type exp_type

@@ -1,11 +1,5 @@
-.merlin
 .idea/
-esy.lock/
-node_modules/
-_release
-_build
-_esy
-rincewind.install
+_build/
+.merlin
 *.install
 *.iml
-*.cmtout
