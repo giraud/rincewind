@@ -6,8 +6,13 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       matrix:
-        operating-system: [macos-latest, ubuntu-latest, windows-latest]
+        operating-system: [ macos-latest, ubuntu-latest, windows-latest ]
         ocaml-version: [ '4.06.1', '4.07.1', '4.08.1', '4.09.0' ]
+    env:
+      version: '0.6-snapshot'
+      macOS: 'o'
+      Windows: 'w'
+      Linux: 'l'
     steps:
     - uses: actions/checkout@master
     - uses: avsm/setup-ocaml@master
@@ -18,7 +23,9 @@ jobs:
     - run: opam install -t . --deps-only
     - run: opam exec -- dune build
     - run: opam exec -- dune runtest
+    - run: mkdir -p _build/final
+    - run: mv _build/default/bin/rincewind.exe _build/final/rincewind_${{ env[runner.os] }}${{ matrix.ocaml-version }}-${{ env.version }}.exe
     - uses: actions/upload-artifact@master
       with:
-        name: rincewind_${{ matrix.operating-system }}-${{ matrix.ocaml-version }}-0.6-snapshot.exe
-        path: _build/default/bin/rincewind.exe
+        name: rincewind
+        path: _build/final
