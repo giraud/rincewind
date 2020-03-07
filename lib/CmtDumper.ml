@@ -376,12 +376,17 @@ and process_module_description tab _env mod_desc =
             process_expression tab expression
         )
 
-#if OCAML_MINOR >= 8
+#if OCAML_MINOR >= 10
 and process_module_binding tab _env {Typedtree.mb_id; mb_name; mb_expr; mb_attributes; mb_loc; _} =
+    stag tab "module_binding" [("id", dump_ident_o mb_id); ("mb_name", dump_string_loc_o mb_name); ("mb_loc", dump_loc mb_loc)]
+#elif OCAML_MINOR >= 8
+and process_module_binding tab _env {Typedtree.mb_id; mb_name; mb_expr; mb_attributes; mb_loc; _} =
+    stag tab "module_binding" [("id", dump_ident mb_id); ("mb_name", dump_string_loc mb_name); ("mb_loc", dump_loc mb_loc)]
 #else
 and process_module_binding tab _env {Typedtree.mb_id; mb_name; mb_expr; mb_attributes; mb_loc} =
+    stag tab "module_binding" [("id", dump_ident mb_id); ("mb_name", dump_string_loc mb_name); ("mb_loc", dump_loc mb_loc)]
 #endif
-    stag tab "module_binding" [("id", dump_ident_o mb_id); ("mb_name", dump_string_loc_o mb_name); ("mb_loc", dump_loc mb_loc)] (fun tab ->
+      (fun tab ->
         stag tab "mb_attributes" [] (fun tab -> List.iter (process_attribute tab) mb_attributes);
         let { Typedtree.mod_desc; mod_loc; mod_type; mod_env; _(*mod_attributes*) } = mb_expr in
             Xml.atag tab "mod_env" "__";
