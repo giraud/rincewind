@@ -36,6 +36,10 @@ let dump_ident (ident: Ident.t) =
     let Ident.{ stamp; name; _(*flags*) } = ident in
     name ^ "/" ^ (string_of_int stamp) (* like unique_toplevel_name *)
 #endif
+let dump_ident_o (ident) =
+  match (ident) with
+  | None -> ""
+  | Some(i) -> dump_ident i
 
 let rec dump_path (p: Path.t) =
     match (p) with
@@ -60,6 +64,9 @@ let dump_longident_loc {Asttypes.txt(*LongIdent.t*); loc(*Location.t*)} =
 let dump_ast_loc {Asttypes.txt; loc} =
     txt ^ "|" ^ (dump_loc loc)
 
+let dump_string_loc_o Location.{txt; loc} = (* Location.loc *)
+    (Util.Option.getWithDefault "" txt) ^ "|" ^ (dump_loc loc)
+
 let dump_string_loc Location.{txt; loc} = (* Location.loc *)
     txt ^ "|" ^ (dump_loc loc)
 
@@ -75,11 +82,12 @@ let dump_value_kind (kind: Types.value_kind) =
     | Val_ivar _(*mutable_flag * string*) -> "Instance variable (mutable ?)"
     | Val_self _(*(Ident.t * type_expr) Meths.t ref * (Ident.t * mutable_flag * virtual_flag * type_expr) Vars.t ref * string * type_expr*) -> "Self"
     | Val_anc _(*(string * Ident.t) list * string*) -> "Ancestor"
-#if OCAML_MINOR >= 8
+   #if OCAML_MINOR >= 10
+   #elif OCAML_MINOR >= 8
     | Val_unbound _  -> "Unbound variable"
-#else
+   #else
     | Val_unbound    -> "Unbound variable"
-#endif
+   #endif
 
 let print_type_scheme env typ =
   Printtyp.wrap_printing_env env (fun () -> Format.asprintf "%a" Printtyp.type_scheme typ)
@@ -152,10 +160,18 @@ and dump_summary s = match s with
 #endif
   | Env_functor_arg _ (* summary * Ident.t *) -> "functor_arg"
   | Env_constraints (_, _) -> "constraints"
+ #if OCAML_MINOR >= 10
+  | Env_copy_types _(*summary*) -> "copy_types"
+ #else
   | Env_copy_types (_, _) -> "copy_types"
-#if OCAML_MINOR >= 8
+ #endif
+ #if OCAML_MINOR >= 8
   | Env_persistent (_su, _id) -> "Env_persistent"
-#endif
+ #endif
+ #if OCAML_MINOR >= 10
+  | Env_value_unbound (_(*summary*), _(*string*), _(*value_unbound_reason*)) -> "Env_value_unbound"
+  | Env_module_unbound (_(*summary*), _(*string*), _(*module_unbound_reason*)) -> "Env_module_unbound"
+ #endif
 
 and dump_env env = dump_summary (Env.summary env)
 
@@ -344,8 +360,13 @@ and process_module_description tab _env mod_desc =
             stag tab "str_type" [] (fun tab -> (List.iter (fun i -> stag tab "str_item" [] (fun tab -> process_signature_item tab i)) str_type));
             stag tab "str_items" [] (fun tab -> List.iter (process_structure_item tab) str_items)
         )
+   #if OCAML_MINOR >= 10
+    | Tmod_functor (_fp(*functor_parameter*), _me(*module_expr*)) ->
+        Xml.mtag tab "Tmod_functor"
+   #else
     | Tmod_functor (_i(*Ident.t*), _sl(*string loc*), _mto(*module_type option*), _me(*module_expr*)) ->
         Xml.mtag tab "Tmod_functor"
+   #endif
     | Tmod_apply (_me(*module_expr*), _me'(*module_expr*), _mc(*module_coercion*)) ->
         Xml.mtag tab "Tmod_apply"
     | Tmod_constraint (_me(*module_expr*), _mt(*Types.module_type*), _mtc(*module_type_constraint*), _mc(*module_coercion*)) ->
@@ -360,7 +381,7 @@ and process_module_binding tab _env {Typedtree.mb_id; mb_name; mb_expr; mb_attri
 #else
 and process_module_binding tab _env {Typedtree.mb_id; mb_name; mb_expr; mb_attributes; mb_loc} =
 #endif
-    stag tab "module_binding" [("id", dump_ident mb_id); ("mb_name", dump_string_loc mb_name); ("mb_loc", dump_loc mb_loc)] (fun tab ->
+    stag tab "module_binding" [("id", dump_ident_o mb_id); ("mb_name", dump_string_loc_o mb_name); ("mb_loc", dump_loc mb_loc)] (fun tab ->
         stag tab "mb_attributes" [] (fun tab -> List.iter (process_attribute tab) mb_attributes);
         let { Typedtree.mod_desc; mod_loc; mod_type; mod_env; _(*mod_attributes*) } = mb_expr in
             Xml.atag tab "mod_env" "__";

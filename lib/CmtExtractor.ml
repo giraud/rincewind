@@ -135,10 +135,10 @@ and process_module_binding oc _env {mb_id; mb_name; mb_expr; mb_loc; _(*mb_attri
         match loc_ghost with
         | true ->
              (match extract_make_type mod_type with
-             | Some(t) -> Printf.printf "Mg|%s|%s|%s\n" (Formatter.format_location loc) (Formatter.format_ident mb_id) t
+             | Some(t) -> Printf.printf "Mg|%s|%s|%s\n" (Formatter.format_location loc) (Formatter.format_ident_o mb_id) t
              | None -> ())
         | false ->
-            Printf.printf "Md|%s|%s\n" (Formatter.format_location mb_loc) (Formatter.format_ident mb_id)
+            Printf.printf "Md|%s|%s\n" (Formatter.format_location mb_loc) (Formatter.format_ident_o mb_id)
     );
     process_module_description oc mod_env mod_desc;
 

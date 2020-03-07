@@ -27,6 +27,11 @@ let format_etype {Typedtree.exp_type; _} =
 let format_path p =
     Printtyp.string_of_path p
 
+let format_ident_o i =
+    match (i) with
+    | None -> ""
+    | Some(i) -> Format.asprintf "%a" Printtyp.ident(*Ident.print*) i
+
 let format_ident i =
     Format.asprintf "%a" Printtyp.ident(*Ident.print*) i
 
