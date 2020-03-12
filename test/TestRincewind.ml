@@ -1,6 +1,6 @@
 let test_val_basic () =
   let open! Let in
-  let output = TestCore.run_extractor "Let" in
+  let output = TestCore.run_extractor "let" in
 
   Alcotest.(check (list string)) "same output" output [
     "Va|1.4,1.5|i|int";
