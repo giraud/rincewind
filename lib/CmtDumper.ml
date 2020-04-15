@@ -94,10 +94,20 @@ let print_type_scheme env typ =
 
 let rec process_module_type tab mt =
   match mt with
-  | Types.Mty_ident _pa -> Xml.mtag tab "Mty_ident"
+  | Types.Mty_ident path -> Xml.atag tab "Mty_ident" (dump_path path)
   | Mty_signature  signature ->
         stag tab "Mty_signature" [] (fun tab -> List.iter (process_signature_item tab) signature)
-  | Mty_functor _(*Ident.t * module_type option * module_type*) -> Xml.mtag tab "Mty_functor"
+ #if OCAML_MINOR >= 10
+  | Mty_functor (_functor_parameter, module_type) ->
+        Xml.ctag tab "Mty_functor" [] (Some(["functor_parameter"])) (fun tab ->
+            Xml.ctag tab "module_type" [] None (fun tab -> process_module_type tab module_type)
+        )
+ #else
+  | Mty_functor (id(*Ident.t*), _mod_type_o (*module_type option*), mod_type (*module_type*)) ->
+        Xml.ctag tab "Mty_functor" [("ident", dump_ident id)] (Some(["mod_type_option"])) (fun tab ->
+            Xml.ctag tab "module_type" [] None (fun tab -> process_module_type tab mod_type)
+        )
+ #endif
   | Mty_alias _(*alias_presence * Path.t*) -> Xml.mtag tab "Mty_alias"
 
 and process_value_description tab vd(*types.value_description*) =
@@ -351,6 +361,12 @@ and process_value_binding tab _parent_env {vb_pat; vb_expr; vb_loc; _(*vb_attrib
         process_expression tab vb_expr
     )
 
+and process_module_expression tab { Typedtree.mod_desc; mod_loc; mod_type; mod_env; _(*mod_attributes*) } =
+    Xml.atag tab "mod_env" "__";
+    stag tab "mod_type" [] (fun tab -> process_module_type tab mod_type);
+    Xml.atag tab "mod_loc" (dump_loc mod_loc);
+    process_module_description tab mod_env mod_desc
+
 and process_module_description tab _env mod_desc =
     match mod_desc with
     | Typedtree.Tmod_ident (path, longident_loc) ->
@@ -364,13 +380,30 @@ and process_module_description tab _env mod_desc =
     | Tmod_functor (_fp(*functor_parameter*), _me(*module_expr*)) ->
         Xml.mtag tab "Tmod_functor"
    #else
-    | Tmod_functor (_i(*Ident.t*), _sl(*string loc*), _mto(*module_type option*), _me(*module_expr*)) ->
-        Xml.mtag tab "Tmod_functor"
+    | Tmod_functor (id, loc, mod_type_o (*module_type option*), mod_expr) ->
+        Xml.ctag tab "Tmod_functor" [("ident", dump_ident id); ("loc", dump_string_loc loc)] None (fun tab ->
+            (match mod_type_o with
+                | None -> ()
+                | Some _mod_type -> Xml.mtag tab "Typedtree.module_type"
+                (*
+                { mty_desc: module_type_desc;
+                    mty_type : Types.module_type;
+                    mty_env : Env.t;
+                    mty_loc: Location.t;
+                    mty_attributes: attribute list;
+                   }
+                *)
+            );
+            Xml.ctag tab "module_expression" [] None (fun tab -> process_module_expression tab mod_expr);
+        )
    #endif
     | Tmod_apply (_me(*module_expr*), _me'(*module_expr*), _mc(*module_coercion*)) ->
         Xml.mtag tab "Tmod_apply"
-    | Tmod_constraint (_me(*module_expr*), _mt(*Types.module_type*), _mtc(*module_type_constraint*), _mc(*module_coercion*)) ->
-        Xml.mtag tab "Tmod_constraint"
+    | Tmod_constraint (m_expr, m_type(*Types.module_type*), _mtc(*module_type_constraint*), _mc(*module_coercion*)) ->
+        Xml.ctag tab "Tmod_constraint" [] (Some(["mod_type_constraint"; "mod_coercion"])) (fun tab ->
+            Xml.ctag tab "module_type" [] None (fun tab -> process_module_type tab m_type);
+            Xml.ctag tab "module_expression" [] None (fun tab -> process_module_expression tab m_expr)
+        )
     | Tmod_unpack (expression, _module_type(*Types.module_type*)) ->
         stag tab "Tmod_unpack" [] (fun tab ->
             process_expression tab expression
@@ -388,12 +421,8 @@ and process_module_binding tab _env {Typedtree.mb_id; mb_name; mb_expr; mb_attri
 #endif
       (fun tab ->
         stag tab "mb_attributes" [] (fun tab -> List.iter (process_attribute tab) mb_attributes);
-        let { Typedtree.mod_desc; mod_loc; mod_type; mod_env; _(*mod_attributes*) } = mb_expr in
-            Xml.atag tab "mod_env" "__";
-            stag tab "mod_type" [] (fun tab -> process_module_type tab mod_type);
-            Xml.atag tab "mod_loc" (dump_loc mod_loc);
-            process_module_description tab mod_env mod_desc
-    )
+        process_module_expression tab mb_expr
+      )
 
 #if OCAML_MINOR >= 8
 and process_open_description tab Typedtree.{open_expr; open_loc; _(*open_bound_items; open_override; open_env; open_attributes*)} =
@@ -420,7 +449,8 @@ and process_structure_item tab {str_desc; str_loc; str_env} =
             process_module_binding tab str_env module_binding
         );
     | Tstr_recmodule (_mbl(*module_binding list*)) -> Xml.mtag tab "Tstr_recmodule"
-    | Tstr_modtype (_mtd(*module_type_declaration*)) -> Xml.mtag tab "Tstr_modtype"
+    | Tstr_modtype ({mtd_id (*Ident.t*); mtd_name(*string loc*); mtd_loc(*Location.t*); _ (*mtd_type(*module_type option*); _mtd_attributes(*attribute list*);*) }(*Typedtree.module_type_declaration*)) ->
+        Xml.ctag tab "Tstr_modtype" [("mtd_id", dump_ident mtd_id); ("mtd_loc", dump_loc mtd_loc); ("mtd_name", dump_string_loc mtd_name)] (Some(["mtd_attributes"; "mtd_type"])) (fun tab -> Xml.mtag tab "zzz")
 #if OCAML_MINOR >= 8
     | Tstr_open _(*open_description*) ->
         Xml.mtag tab "Tstr_open"

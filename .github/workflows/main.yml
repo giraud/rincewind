@@ -9,7 +9,7 @@ jobs:
         operating-system: [ macos-latest, ubuntu-latest, windows-latest ]
         ocaml-version: [ '4.06.1', '4.07.1', '4.08.1', '4.09.0', '4.10.0' ]
     env:
-      version: '0.7'
+      version: '0.8-snapshot'
       macOS: 'o'
       Windows: 'w'
       Linux: 'l'

@@ -123,9 +123,18 @@ and process_value_binding oc _env {vb_pat; vb_expr; _(*vb_attributes; vb_loc*)} 
     process_value_binding_pattern oc vb_pat;
     process_expression oc vb_expr
 
-and process_module_description oc _env mod_desc =
-    match mod_desc with
+and process_module_description oc env mod_desc =
+    match mod_desc(*Typedtree*) with
     | Tmod_structure ({str_items; _(*str_final_env; str_type*)}) -> List.iter (fun item -> process_structure_item oc item) str_items
+   #if OCAML_MINOR >= 10
+    | Tmod_functor (_fp(*functor_parameter*), { Typedtree.mod_desc; _ }(*module_expr*)) ->
+        process_module_description oc env mod_desc
+   #else
+    | Tmod_functor (_id, _loc, _module_type, { Typedtree.mod_desc; _ }(*module_expr*)) ->
+        process_module_description oc env mod_desc
+   #endif
+    | Tmod_constraint ({ Typedtree.mod_desc; _ }(*module_expr*), (*Types.*)_module_type, _module_type_constraint, _module_coercion) ->
+        process_module_description oc env mod_desc
     | _ -> ()
 
 and process_module_binding oc _env {mb_id; mb_name; mb_expr; mb_loc; _(*mb_attributes*)} =
