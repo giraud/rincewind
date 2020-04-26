@@ -397,8 +397,11 @@ and process_module_description tab _env mod_desc =
             Xml.ctag tab "module_expression" [] None (fun tab -> process_module_expression tab mod_expr);
         )
    #endif
-    | Tmod_apply (_me(*module_expr*), _me'(*module_expr*), _mc(*module_coercion*)) ->
-        Xml.mtag tab "Tmod_apply"
+    | Tmod_apply (me(*module_expr*), me'(*module_expr*), _mc(*module_coercion*)) ->
+        Xml.ctag tab "Tmod_apply" [] (Some(["mod_coercion"])) (fun tab ->
+            Xml.ctag tab "module_expression" [] None (fun tab -> process_module_expression tab me);
+            Xml.ctag tab "module_expression2" [] None (fun tab -> process_module_expression tab me')
+        )
     | Tmod_constraint (m_expr, m_type(*Types.module_type*), _mtc(*module_type_constraint*), _mc(*module_coercion*)) ->
         Xml.ctag tab "Tmod_constraint" [] (Some(["mod_type_constraint"; "mod_coercion"])) (fun tab ->
             Xml.ctag tab "module_type" [] None (fun tab -> process_module_type tab m_type);

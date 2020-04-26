@@ -13,7 +13,8 @@ let test_functor_let () =
   let output = TestCore.run_extractor "functorLet" in
 
   Alcotest.(check (list string)) "same output" [
-    "Va|4.6,4.7|x|int"
+    "Va|4.6,4.7|x|int";
+    "Va|8.8,8.9|x|int"
   ] output
 
 let () =

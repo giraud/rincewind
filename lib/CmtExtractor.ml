@@ -133,6 +133,9 @@ and process_module_description oc env mod_desc =
     | Tmod_functor (_id, _loc, _module_type, { Typedtree.mod_desc; _ }(*module_expr*)) ->
         process_module_description oc env mod_desc
    #endif
+    | Tmod_apply (module_expr, module_expr', _module_coercion) ->
+        process_module_description oc env module_expr.Typedtree.mod_desc;
+        process_module_description oc env module_expr'.Typedtree.mod_desc
     | Tmod_constraint ({ Typedtree.mod_desc; _ }(*module_expr*), (*Types.*)_module_type, _module_type_constraint, _module_coercion) ->
         process_module_description oc env mod_desc
     | _ -> ()
