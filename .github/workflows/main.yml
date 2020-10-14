@@ -7,9 +7,9 @@ jobs:
     strategy:
       matrix:
         operating-system: [ macos-latest, ubuntu-latest, windows-latest ]
-        ocaml-version: [ '4.06.1', '4.07.1', '4.08.1', '4.09.0', '4.10.0' ]
+        ocaml-version: [ '4.06.1', '4.07.1', '4.08.1', '4.09.1', '4.10.0' ]
     env:
-      version: '0.9-SNAPSHOT'
+      version: '0.9'
       macOS: 'o'
       Windows: 'w'
       Linux: 'l'
