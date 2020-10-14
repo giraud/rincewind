@@ -70,11 +70,14 @@ let rec process_expression oc {exp_loc; exp_desc; exp_env; _} =
         List.iter (process_expression oc) expression_list
     | Texp_variant (_l, _eo) -> ()
     | Texp_record  { fields ; extended_expression; _ } ->
-        Array.iter (fun ({lbl_name; lbl_arg; _}, _field_expression) ->
-            Printf.printf "Rf|%s|%s|%s\n" (Formatter.format_location exp_loc) lbl_name (Formatter.format_type lbl_arg);
-            match extended_expression with
-            | None -> ()
-            | Some e -> process_expression oc e
+        Array.iter (fun ({lbl_name; lbl_arg; _}, rld) ->
+            let {Location.loc_ghost; _} = exp_loc in
+                (match loc_ghost with
+                | true -> ()
+                | false -> Printf.printf "Rf|%s|%s|%s\n" (Formatter.format_location exp_loc) lbl_name (Formatter.format_type lbl_arg));
+            match rld with
+            | Typedtree.Kept _e -> ()
+            | Overridden (_loc, e) -> process_expression oc e
         ) fields ;
         (match extended_expression with
            | None -> ()
