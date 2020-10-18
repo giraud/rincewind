@@ -21,7 +21,7 @@ module Driver = struct
     let dumpAst = ref false
     let dumpMeta = ref false
 
-    let version = "0.9"
+    let version = "0.9.1"
     let usage_message = "Usage: rincewind.exe <filename>\n" ^ version
     let spec = Arg.align [
                  ("-i", Arg.Set dumpInferred, " Dump inferred");

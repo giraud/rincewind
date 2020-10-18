@@ -1,3 +1,8 @@
+let skip_first lines : string list =
+  match (lines) with
+    | _hd :: rest -> rest
+    | other -> other
+
 let read_lines name : string list =
   let ic = open_in name in
   let try_read () =

@@ -15,6 +15,12 @@ let escape_string str =
 let normalize_string str =
   Str.global_replace sp_regexp " " (Str.global_replace cr_regexp " " str)
 
+let format_arg (a: Asttypes.arg_label) =
+     match a with
+          | Nolabel -> ""
+          | Labelled(name) -> name
+          | Optional(name) -> name
+
 let format_type t =
     normalize_string (Format.asprintf "%a" Printtyp.type_scheme t)
 

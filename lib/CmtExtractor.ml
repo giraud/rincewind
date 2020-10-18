@@ -50,20 +50,25 @@ let rec process_expression oc {exp_loc; exp_desc; exp_env; _} =
         let {Location.loc_ghost; _} = exp_loc in
         (match loc_ghost with
         | true -> ()
-        | false -> Printf.printf "Id|%s|%s|%s|%s\n" (Formatter.format_location loc) (Formatter.format_lident txt) (Formatter.format_path path) (Formatter.format_type val_type))
+        | false -> Printf.fprintf oc "Id|%s|%s|%s|%s\n" (Formatter.format_location loc) (Formatter.format_lident txt) (Formatter.format_path path) (Formatter.format_type val_type))
     | Texp_constant _c -> ()
-    | Texp_let (_(*flag rec/nonrec*), vbl, e) ->
-        List.iter (process_value_binding oc exp_env) vbl;
-        process_expression oc e
+    | Texp_let (_(*flag rec/nonrec*), value_binding_list, expression) ->
+        List.iter (process_value_binding oc exp_env) value_binding_list;
+        process_expression oc expression
     | Texp_function { cases; _ } ->
         List.iter (process_case oc) cases
-    | Texp_apply (e, leol) ->
-        let process_labels = fun (_arg_label, eo) ->
-            match eo with
-            | None -> ()
-            | Some e -> process_expression oc e in
-        process_expression oc e;
-        List.iter process_labels leol
+    | Texp_apply (expression, leol) ->
+        process_expression oc expression;
+        List.iter (fun (arg_label, eo) ->
+              match eo with
+              | Some e ->
+                  (match (arg_label) with
+                  | Asttypes.Nolabel -> ()
+                  | _ -> Printf.fprintf oc "Pa|%s|%s|%s\n" (Formatter.format_location e.exp_loc) (Formatter.format_arg arg_label) (Formatter.format_type e.exp_type)
+                  );
+                  process_expression oc e
+              | None -> ()
+        ) leol
 #if OCAML_MINOR >= 8
     | Texp_match (e, cl, _partial) ->
         process_expression oc e;
@@ -84,7 +89,7 @@ let rec process_expression oc {exp_loc; exp_desc; exp_env; _} =
             let {Location.loc_ghost; _} = exp_loc in
                 (match loc_ghost with
                 | true -> ()
-                | false -> Printf.printf "Rf|%s|%s|%s\n" (Formatter.format_location exp_loc) lbl_name (Formatter.format_type lbl_arg));
+                | false -> Printf.fprintf oc "Rf|%s|%s|%s\n" (Formatter.format_location exp_loc) lbl_name (Formatter.format_type lbl_arg));
             match rld with
             | Typedtree.Kept _e -> ()
             | Overridden (_loc, e) -> process_expression oc e
@@ -161,16 +166,16 @@ and process_module_binding oc _env {mb_id; mb_name; mb_expr; mb_loc; _(*mb_attri
         | true ->
              (match extract_make_type mod_type with
             #if OCAML_MINOR >= 10
-             | Some(t) -> Printf.printf "Mg|%s|%s|%s\n" (Formatter.format_location loc) (Formatter.format_ident_o mb_id) t
+             | Some(t) -> Printf.fprintf oc "Mg|%s|%s|%s\n" (Formatter.format_location loc) (Formatter.format_ident_o mb_id) t
             #else
-             | Some(t) -> Printf.printf "Mg|%s|%s|%s\n" (Formatter.format_location loc) (Formatter.format_ident mb_id) t
+             | Some(t) -> Printf.fprintf oc "Mg|%s|%s|%s\n" (Formatter.format_location loc) (Formatter.format_ident mb_id) t
             #endif
              | None -> ())
         | false ->
            #if OCAML_MINOR >= 10
-            Printf.printf "Md|%s|%s\n" (Formatter.format_location mb_loc) (Formatter.format_ident_o mb_id)
+            Printf.fprintf oc "Md|%s|%s\n" (Formatter.format_location mb_loc) (Formatter.format_ident_o mb_id)
            #else
-            Printf.printf "Md|%s|%s\n" (Formatter.format_location mb_loc) (Formatter.format_ident mb_id)
+            Printf.fprintf oc "Md|%s|%s\n" (Formatter.format_location mb_loc) (Formatter.format_ident mb_id)
            #endif
     );
     process_module_description oc mod_env mod_desc;
@@ -188,7 +193,7 @@ and process_structure_item oc {str_desc; str_env; _(*str_loc;*)} =
 
 let read_cmt oc cmt =
     let { Cmt_format.cmt_annots; cmt_sourcefile; cmt_builddir; _ } = cmt in
-    Printf.printf "__|%s|%s\n" (Util.Option.getWithDefault "<NONE>" cmt_sourcefile) cmt_builddir;
+    Printf.fprintf oc "__|%s|%s\n" (Util.Option.getWithDefault "<NONE>" cmt_sourcefile) cmt_builddir;
 
     match cmt_annots with
         | Implementation {str_items; _} -> List.iter (process_structure_item oc) str_items
