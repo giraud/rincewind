@@ -1,3 +1,13 @@
+(*
+ Md  Module
+ Mg  Module ghost
+ Op  Open
+ Id  Identifier
+ Va  Value
+ Pa  Parameter
+ Rf  Record field
+ *)
+
 open Typedtree
 open Types
 
