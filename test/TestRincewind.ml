@@ -32,12 +32,23 @@ let test_named_param () =
     "Pa|3.8,3.9|x|int";
   ]  output
 
+let test_record () =
+  let open! Record in
+  let output = TestCore.(skip_first (run_extractor "record")) in
+
+  Alcotest.(check (list string)) "same output" [
+    "Va|6.4,6.5|x|t";
+    "Rf|6.8,9.1|pageSize|int";
+    "Rf|6.8,9.1|languages|string array";
+  ]  output
+
 let () =
   let open Alcotest in
   run "cmt extractor" [
     "basic", [
         test_case "should get let info" `Quick test_val_basic;
         test_case "should get let info in functor" `Quick test_functor_let;
-        test_case "should get named param" `Quick test_named_param;
+        test_case "should get named param info" `Quick test_named_param;
+        test_case "should get record info" `Quick test_record;
     ]
   ]
