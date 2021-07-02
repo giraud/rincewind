@@ -195,6 +195,9 @@ let read_cmt oc cmt =
     let { Cmt_format.cmt_annots; cmt_sourcefile; cmt_builddir; _ } = cmt in
     Printf.fprintf oc "__|%s|%s\n" (Util.Option.getWithDefault "<NONE>" cmt_sourcefile) cmt_builddir;
 
+
+
+
     match cmt_annots with
         | Implementation {str_items; _} -> List.iter (process_structure_item oc) str_items
         | _ -> ()
