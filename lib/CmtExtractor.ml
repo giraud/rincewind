@@ -69,7 +69,7 @@ let rec process_expression oc {exp_loc; exp_desc; exp_env; _} =
                   process_expression oc e
               | None -> ()
         ) leol
-   #if OCAML_MINOR >= 13
+   #if OCAML_MINOR >= 11
     | Texp_match (e, _cl, _partial) ->
         process_expression oc e;
         (* zzz List.iter (process_case oc) cl; *)

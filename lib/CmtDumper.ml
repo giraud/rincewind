@@ -111,7 +111,7 @@ let rec process_module_type tab mt =
   | Mty_alias _(*alias_presence * Path.t*) -> Xml.mtag tab "Mty_alias"
 
 and process_value_description tab vd(*types.value_description*) =
- #if OCAML_MINOR >= 12
+ #if OCAML_MINOR >= 11
   let Types.{ val_type; val_kind; val_loc; val_attributes; _ } = vd in
   stag tab "value_description" [("val_type", Dump.dump_type val_type); ("val_kind",  dump_value_kind val_kind); ("val_loc", dump_loc val_loc);] (fun tab ->
       List.iter (process_attribute tab) val_attributes
@@ -210,12 +210,12 @@ and process_pattern_desc tab pat_desc =
     | Tpat_array (_patternl) -> Xml.mtag tab "Tpat_array"
     | Tpat_or (_pattern, _pattern', _row_desc) -> Xml.mtag tab "Tpat_or"
     | Tpat_lazy (_pattern) -> Xml.mtag tab "Tpat_lazy"
-   #if OCAML_MINOR >= 13
+   #if OCAML_MINOR >= 11
    #elif OCAML_MINOR >= 8
     | Tpat_exception _ -> Xml.mtag tab "Tpat_exception"
    #endif
 
-#if OCAML_MINOR >= 13
+#if OCAML_MINOR >= 11
 and process_case tab (c: 'a Typedtree.case) =
     let Typedtree.{c_lhs: Typedtree.pattern; c_rhs; c_guard; _} = c in
     let Typedtree.{pat_desc; pat_loc; pat_type; _ (* pat_extra; pat_env; pat_attributes *)} = c_lhs in
@@ -295,7 +295,7 @@ and process_expression tab { exp_desc; exp_loc; exp_env; exp_type; _(*exp_attrib
                         ) leol;
                 )
             )
-    #if OCAML_MINOR >= 13
+    #if OCAML_MINOR >= 11
         | Texp_match (expression, _case_list, partial) ->
             stag tab "Texp_match" [("partial", Dump.partial partial)] (fun tab ->
                 process_expression tab expression;
