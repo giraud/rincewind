@@ -200,7 +200,7 @@ and process_pattern_desc tab pat_desc =
     | Tpat_alias (_pattern, _ident, _loc) -> Xml.mtag tab "Tpat_alias"
     | Tpat_constant (_c) ->  Xml.mtag tab "Tpat_constant"
     | Tpat_tuple (_patternl) -> Xml.mtag tab "Tpat_tuple"
-   #if OCAML_MINOR >= 12
+   #if OCAML_MINOR >= 13
     | Tpat_construct (_loc, _constr_desc, _patternl, _) -> Xml.mtag tab "Tpat_construct"
    #else
     | Tpat_construct (_loc, _constr_desc, _patternl) -> Xml.mtag tab "Tpat_construct"
