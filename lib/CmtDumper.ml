@@ -111,10 +111,17 @@ let rec process_module_type tab mt =
   | Mty_alias _(*alias_presence * Path.t*) -> Xml.mtag tab "Mty_alias"
 
 and process_value_description tab vd(*types.value_description*) =
+ #if OCAML_MINOR >= 12
+  let Types.{ val_type; val_kind; val_loc; val_attributes; _ } = vd in
+  stag tab "value_description" [("val_type", Dump.dump_type val_type); ("val_kind",  dump_value_kind val_kind); ("val_loc", dump_loc val_loc);] (fun tab ->
+      List.iter (process_attribute tab) val_attributes
+  )
+ #else
   let Types.{ val_type; val_kind; val_loc; val_attributes } = vd in
   stag tab "value_description" [("val_type", Dump.dump_type val_type); ("val_kind",  dump_value_kind val_kind); ("val_loc", dump_loc val_loc);] (fun tab ->
       List.iter (process_attribute tab) val_attributes
   )
+ #endif
 
 and process_modtype_declaration tab { Types.mtd_type; _(*mtd_attributes; mtd_loc;*) } =
     match mtd_type with | None -> Xml.tag tab "mtd_type" [("abstract", "true")] None | Some t -> stag tab "mtd_type" [("abstract", "false")] (fun tab -> process_module_type tab t)
@@ -193,16 +200,33 @@ and process_pattern_desc tab pat_desc =
     | Tpat_alias (_pattern, _ident, _loc) -> Xml.mtag tab "Tpat_alias"
     | Tpat_constant (_c) ->  Xml.mtag tab "Tpat_constant"
     | Tpat_tuple (_patternl) -> Xml.mtag tab "Tpat_tuple"
+   #if OCAML_MINOR >= 12
+    | Tpat_construct (_loc, _constr_desc, _patternl, _) -> Xml.mtag tab "Tpat_construct"
+   #else
     | Tpat_construct (_loc, _constr_desc, _patternl) -> Xml.mtag tab "Tpat_construct"
+   #endif
     | Tpat_variant (_label, _pattern, _row_desc) -> Xml.mtag tab "Tpat_variant"
     | Tpat_record (_rl, _flag) -> Xml.mtag tab "Tpat_record"
     | Tpat_array (_patternl) -> Xml.mtag tab "Tpat_array"
     | Tpat_or (_pattern, _pattern', _row_desc) -> Xml.mtag tab "Tpat_or"
     | Tpat_lazy (_pattern) -> Xml.mtag tab "Tpat_lazy"
-#if OCAML_MINOR >= 8
+   #if OCAML_MINOR >= 13
+   #elif OCAML_MINOR >= 8
     | Tpat_exception _ -> Xml.mtag tab "Tpat_exception"
-#endif
+   #endif
 
+#if OCAML_MINOR >= 13
+and process_case tab (c: 'a Typedtree.case) =
+    let Typedtree.{c_lhs: Typedtree.pattern; c_rhs; c_guard; _} = c in
+    let Typedtree.{pat_desc; pat_loc; pat_type; _ (* pat_extra; pat_env; pat_attributes *)} = c_lhs in
+    Xml.ctag tab "c_lhs" [("pat_loc", dump_loc pat_loc); ("pat_type", Dump.dump_type pat_type)] (Some(["pat_env"; "pat_attributes"; "pat_extra"])) (fun tab ->
+        process_pattern_desc tab pat_desc
+    );
+    (match (c_guard) with | None -> () | Some(e) -> process_expression tab e);
+    Xml.ctag tab "c_rhs" [] None (fun tab ->
+        process_expression tab c_rhs
+    )
+#else
 and process_case tab (c: Typedtree.case) =
     let Typedtree.{c_lhs: Typedtree.pattern; c_rhs; c_guard} = c in
     let Typedtree.{pat_desc; pat_loc; pat_type; _ (* pat_extra; pat_env; pat_attributes *)} = c_lhs in
@@ -213,6 +237,7 @@ and process_case tab (c: Typedtree.case) =
     Xml.ctag tab "c_rhs" [] None (fun tab ->
         process_expression tab c_rhs
     )
+#endif
 
 #if OCAML_MINOR >= 8
 and process_attribute tab Parsetree.{attr_payload; attr_loc; _} =
@@ -270,7 +295,13 @@ and process_expression tab { exp_desc; exp_loc; exp_env; exp_type; _(*exp_attrib
                         ) leol;
                 )
             )
-    #if OCAML_MINOR >= 8
+    #if OCAML_MINOR >= 13
+        | Texp_match (expression, _case_list, partial) ->
+            stag tab "Texp_match" [("partial", Dump.partial partial)] (fun tab ->
+                process_expression tab expression;
+                (* zzz List.iter (process_case tab) case_list; *)
+            )
+    #elif OCAML_MINOR >= 8
         | Texp_match (expression, case_list, partial) ->
             stag tab "Texp_match" [("partial", Dump.partial partial)] (fun tab ->
                 process_expression tab expression;
