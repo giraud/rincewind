@@ -14,7 +14,8 @@ jobs:
       Windows: 'w'
       Linux: 'l'
     steps:
-    - uses: actions/checkout@master
+    - name: Checkout rincewind repository
+      uses: actions/checkout@v2
     - name: Use OCaml ${{ matrix.ocaml-compiler }}
       uses: ocaml/setup-ocaml@v2
       with:
@@ -26,7 +27,8 @@ jobs:
     - run: opam exec -- dune runtest
     - run: mkdir -p _build/final
     - run: mv _build/default/bin/rincewind.exe _build/final/rincewind_${{ env[runner.os] }}${{ matrix.ocaml-compiler }}-${{ env.version }}.exe
-    - uses: actions/upload-artifact@master
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
       with:
         name: rincewind
         path: _build/final
