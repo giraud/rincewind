@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ macos-latest, ubuntu-latest, windows-latest ]
-        ocaml-version: [ '4.06.1', '4.07.1', '4.08.1', '4.09.1', '4.10.2', '4.11.2', '4.12.1', '4.13.1' ]
+        ocaml-compiler: [ '4.06.1', '4.07.1', '4.08.1', '4.09.1', '4.10.2', '4.11.2', '4.12.1', '4.13.1' ]
     env:
       version: '0.10-SNAPSHOT'
       macOS: 'o'
@@ -15,16 +15,17 @@ jobs:
       Linux: 'l'
     steps:
     - uses: actions/checkout@master
-    - uses: avsm/setup-ocaml@master
+    - name: Use OCaml ${{ matrix.ocaml-compiler }}
+      uses: ocaml/setup-ocaml@v2
       with:
-        ocaml-version: ${{ matrix.ocaml-version }}
+        ocaml-compiler: ${{ matrix.ocaml-compiler }}
     - run: opam pin add rincewind.dev -n .
     - run: opam depext -yt rincewind
     - run: opam install -t . --deps-only
     - run: opam exec -- dune build
     - run: opam exec -- dune runtest
     - run: mkdir -p _build/final
-    - run: mv _build/default/bin/rincewind.exe _build/final/rincewind_${{ env[runner.os] }}${{ matrix.ocaml-version }}-${{ env.version }}.exe
+    - run: mv _build/default/bin/rincewind.exe _build/final/rincewind_${{ env[runner.os] }}${{ matrix.ocaml-compiler }}-${{ env.version }}.exe
     - uses: actions/upload-artifact@master
       with:
         name: rincewind
