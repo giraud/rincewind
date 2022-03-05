@@ -10,9 +10,9 @@ jobs:
         ocaml-compiler: [ '4.06.1', '4.07.1', '4.08.1', '4.09.1', '4.10.2', '4.11.2', '4.12.1', '4.13.1' ]
     env:
       version: '0.10-SNAPSHOT'
-      macOS: 'o'
+      macOS:   'o'
       Windows: 'w'
-      Linux: 'l'
+      Linux:   'l'
     steps:
     - name: Checkout rincewind repository
       uses: actions/checkout@v2
