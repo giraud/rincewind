@@ -23,7 +23,7 @@ module Driver = struct
 
   let dumpMeta = ref false
 
-  let version = "0.10-SNAPSHOT"
+  let version = "0.9.1"
 
   let usage_message = "Usage: rincewind.exe <filename>\n" ^ version
 
