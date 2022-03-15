@@ -18,13 +18,9 @@ let print_info dumpInferred dumpAst dumpMeta fname =
 
 module Driver = struct
   let dumpInferred = ref false
-
   let dumpAst = ref false
-
   let dumpMeta = ref false
-
-  let version = "0.9.1"
-
+  let version = "0.10"
   let usage_message = "Usage: rincewind.exe <filename>\n" ^ version
 
   let spec =
