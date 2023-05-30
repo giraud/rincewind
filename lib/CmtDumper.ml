@@ -70,6 +70,10 @@ let dump_string_loc_o Location.{txt; loc} = (* Location.loc *)
 let dump_string_loc Location.{txt; loc} = (* Location.loc *)
     txt ^ "|" ^ (dump_loc loc)
 
+let dump_mutable_flag (flag: Asttypes.mutable_flag) = match flag with
+  | Immutable -> "Immutable"
+  | Mutable -> "Mutable"
+
 let dump_value_description id vd(*{ val_type; val_kind; val_loc; val_attributes }*) =
   Formatter.escape_string (Formatter.normalize_string (Format.asprintf "%a" (Printtyp.value_description id) vd))
 
@@ -255,12 +259,21 @@ and process_attribute tab (attr_loc, attr_payload) =
     )
 
 and process_label_description tab Types.{ (*label_description*)
-                                     lbl_name  (* Short name *);
-                                     lbl_arg;  (* Type of the argument *)
-                                     lbl_loc;
-                                     lbl_pos;
-                                     _ } =
-    Xml.tag tab "label_description" [("lbl_name", lbl_name); ("lbl_arg", Dump.dump_type lbl_arg); ("lbl_loc", dump_loc lbl_loc); ("lbl_pos", string_of_int lbl_pos)] (Some(["lbl_res"; "lbl_mut"; "lbl_all"; "lbl_repres"; "lbl_private"]))
+                                     lbl_name;      (* string: Short name *)
+                                     lbl_res;       (* type_expr: Type of the result *)
+                                     lbl_arg;       (* type_expr: Type of the argument *)
+                                     lbl_mut;       (* mutable_flag: Is this a mutable field? *)
+                                     lbl_pos;       (* int: Position in block *)
+                                     (*lbl_all;       * label_description array: All the labels in this type *)
+                                     (*lbl_repres;    * record_representation: Representation for this record *)
+                                     (*lbl_private;   * private_flag: Read-only field? *)
+                                     lbl_loc;       (* Location.t *)
+                                     (*lbl_attributes * Parsetree.attributes *)
+                                     _
+                                     } =
+    Xml.tag tab "label_description" [("lbl_name", lbl_name); ("lbl_res", Dump.dump_type lbl_res); ("lbl_arg", Dump.dump_type lbl_arg);
+                                     ("lbl_mut", dump_mutable_flag lbl_mut); ("lbl_pos", string_of_int lbl_pos); ("lbl_loc", dump_loc lbl_loc)]
+                                     (Some(["lbl_mut"; "lbl_all"; "lbl_repres"; "lbl_private"; "lbl_attributes"]))
 
 and process_expression tab { exp_desc; exp_loc; exp_env; exp_type; _(*exp_attributes; exp_extra*) } =
     Xml.ctag tab "expression" [("exp_loc", dump_loc exp_loc); ("exp_type", Dump.dump_type exp_type)] (Some(["exp_attributes"; "exp_extra"])) (fun tab ->
@@ -326,19 +339,18 @@ and process_expression tab { exp_desc; exp_loc; exp_env; exp_type; _(*exp_attrib
             | Some(e) -> Xml.ctag tab "Texp_variant" [("label", label)] None (fun tab ->
                              process_expression tab e
                          ))
-        | Texp_record { fields; extended_expression; _(*representation*) } ->
-            stag tab "Texp_record" [] (fun tab ->
-                stag tab "longident_label_description_expression" [] (fun tab ->
-                    (*  (Types.label_description * Typedtree.record_label_definition) array *)
-                    Array.iter (fun (ld, rld) ->
-                        stag tab "record_item" [("label_loc", dump_loc ld.Types.lbl_loc)] (fun tab ->
-                            process_label_description tab ld;
-                            match rld with
-                            | Typedtree.Kept _e(*Types.type_expr*) -> Xml.mtag tab "Kept"
-                            | Overridden (_l(*Longident.t loc*), e(*expression*)) -> process_expression tab e
-                        )
-                    ) fields
-                );
+        | Texp_record { fields(*( Types.label_description * record_label_definition ) array*); extended_expression(*expression option*); _(*representation: Types.record_representation*) } ->
+            Xml.ctag tab "Texp_record" [] None (fun tab ->
+                Array.iter (fun (ld, rld) ->
+                    stag tab "field" [] (fun tab ->
+                        process_label_description tab ld;
+                        match rld with
+                        | Typedtree.Kept _e(*Types.type_expr*) -> Xml.mtag tab "Kept"
+                        | Overridden (liloc(*Longident.t loc*), e(*expression*)) ->
+                        Xml.atag tab "loc" (dump_longident_loc liloc);
+                        process_expression tab e
+                    )
+                ) fields;
                 match extended_expression with
                     | None -> ()
                     | Some e -> process_expression tab e

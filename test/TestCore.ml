@@ -27,3 +27,13 @@ let run_extractor testFile =
     extract out (basedir ^ "/" ^ testFile ^ ".cmt");
     close_out out;
     read_lines (basedir ^ "/" ^ testFile ^ out_ext)
+
+let dump fname =
+    let _cmio, cmto = Cmt_format.read fname in
+    match cmto with
+        | Some cmt -> RinceLib.CmtDumper.print_cmt cmt
+        | _ -> Printf.printf "Can't read %s" fname
+
+let run_dumper testFile =
+    dump (basedir ^ "/" ^ testFile ^ ".cmt");
+    [""]

@@ -38,8 +38,8 @@ let test_record () =
 
   Alcotest.(check (list string)) "same output" [
     "Va|6.4,6.5|x|t";
-    "Rf|6.8,9.1|pageSize|int";
-    "Rf|6.8,9.1|languages|string array";
+    "Rf|7.2,7.10|pageSize|int";
+    "Rf|8.2,8.11|languages|string array";
   ]  output
 
 let () =

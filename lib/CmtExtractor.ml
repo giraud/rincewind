@@ -88,15 +88,12 @@ let rec process_expression oc {exp_loc; exp_desc; exp_env; _} =
     | Texp_construct (_cloc, _cd, expression_list) ->
         List.iter (process_expression oc) expression_list
     | Texp_variant (_l, _eo) -> ()
-    | Texp_record  { fields ; extended_expression; _ } ->
-        Array.iter (fun ({lbl_name; lbl_arg; _}, rld) ->
-            let {Location.loc_ghost; _} = exp_loc in
-                (match loc_ghost with
-                | true -> ()
-                | false -> Printf.fprintf oc "Rf|%s|%s|%s\n" (Formatter.format_location exp_loc) lbl_name (Formatter.format_type lbl_arg));
+    | Texp_record  { fields ; extended_expression; _(*representation*) } ->
+        Array.iter (fun ({lbl_name; _}(*label_description*), rld(*record_label_definition*)) ->
             match rld with
             | Typedtree.Kept _e -> ()
-            | Overridden (_loc, e) -> process_expression oc e
+            | Overridden ({loc; _}(*longident loc*), {exp_type; _}(*expression*)) ->
+            Printf.fprintf oc "Rf|%s|%s|%s\n" (Formatter.format_location loc) lbl_name (Formatter.format_type exp_type);
         ) fields ;
         (match extended_expression with
            | None -> ()

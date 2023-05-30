@@ -7,7 +7,7 @@ Rincewind is a CMT annotation extractor used by the [ReasonML plugin](https://gi
 ### local build
 
 prepare:
-- opam switch to the correct ocaml version
+- opam switch <ocaml version>
 - opam install -t . --deps-only
 
 build:
@@ -15,5 +15,3 @@ build:
 
 test:
 - dune runtest 
- 
- 
