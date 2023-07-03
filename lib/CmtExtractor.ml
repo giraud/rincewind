@@ -106,7 +106,11 @@ let rec process_expression oc {exp_loc; exp_desc; exp_env; _} =
     | Texp_sequence (_e, _e') -> ()
     | Texp_while (_e, _e') -> ()
     | Texp_for (_i, _p, _e, _e', _flag, _e'') -> ()
+#if OCAML_MINOR >= 14
+    | Texp_send (_e, _m) -> ()
+#else
     | Texp_send (_e, _m, _eo) -> ()
+#endif
     | Texp_new (_p, _loc, _cd) -> ()
     | Texp_instvar (_p, _p', _loc) -> ()
     | Texp_setinstvar (_p, _p', _loc, _e) -> ()
