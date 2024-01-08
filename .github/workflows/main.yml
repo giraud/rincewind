@@ -12,6 +12,8 @@ jobs:
           - ubuntu-latest
           - windows-latest
         ocaml-compiler:
+          - '5.01'
+          - '5.0'
           - '4.14'
           - '4.13'
           - '4.12'
@@ -31,7 +33,7 @@ jobs:
 
     steps:
     - name: Checkout rincewind repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Use OCaml ${{ matrix.ocaml-compiler }}
       uses: ocaml/setup-ocaml@v2
@@ -52,7 +54,7 @@ jobs:
     - run: mv _build/default/bin/rincewind.exe _build/final/rincewind_${{ env[runner.os] }}${{ matrix.ocaml-compiler }}-${{ env.version }}.exe
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: rincewind
         path: _build/final
