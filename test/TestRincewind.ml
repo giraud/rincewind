@@ -42,13 +42,20 @@ let test_record () =
     "Rf|8.2,8.11|languages|string array";
   ]  output
 
+let dump_basic_set () =
+  let open! Dump_let in
+  Alcotest.(check (list string)) "same output" [] (TestCore.run_dumper "dump_let")
+
 let () =
   let open Alcotest in
-  run "cmt extractor" [
-    "basic", [
+  run "tests" [
+    ("cmt extractor", [
         test_case "should get let info" `Quick test_val_basic;
         test_case "should get let info in functor" `Quick test_functor_let;
         test_case "should get named param info" `Quick test_named_param;
         test_case "should get record info" `Quick test_record;
-    ]
-  ]
+    ]);
+(*    ("dumper", [ *)
+(*      Alcotest.test_case "rst" `Quick dump_basic_set; *)
+(*    ]) *)
+  ];
