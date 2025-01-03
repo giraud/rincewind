@@ -2,57 +2,88 @@ name: Build Rincewind executables
 
 on: [push]
 
+env:
+  version: '0.10'
+  macOS:   'o'
+  Windows: 'w'
+  Linux:   'l'
+
 jobs:
-  build:
+  build-mac:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - macos-latest
-          - ubuntu-latest
-          - windows-latest
-        ocaml-compiler:
-          - '4.14'
-          - '4.13'
-          - '4.12'
-          - '4.11'
-          - '4.10'
-          - '4.09'
-          - '4.08'
-          - '4.06'
+        ocaml-compiler: [ '4.14', '4.13', '4.12' ]
 
-    runs-on: ${{ matrix.os }}
-
-    env:
-      version: '0.10'
-      macOS:   'o'
-      Windows: 'w'
-      Linux:   'l'
+    runs-on: macos-latest
 
     steps:
     - name: Checkout rincewind repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Use OCaml ${{ matrix.ocaml-compiler }}
       uses: ocaml/setup-ocaml@v2
       with:
         ocaml-compiler: ${{ format('{0}{1}', matrix.ocaml-compiler, '.x') }}
 
-    - run: opam pin add rincewind.dev -n .
-
-    - run: opam depext -yt rincewind
-
-    - run: opam install -t . --deps-only
-
+    - run: opam install . --deps-only --with-test
     - run: opam exec -- dune build
-
     - run: opam exec -- dune runtest
 
     - run: mkdir -p _build/final
     - run: mv _build/default/bin/rincewind.exe _build/final/rincewind_${{ env[runner.os] }}${{ matrix.ocaml-compiler }}-${{ env.version }}.exe
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
-        name: rincewind
+        name: rincewind-${{ matrix.os }}-${{ matrix.ocaml-compiler }}
         path: _build/final
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+        ocaml-compiler: [ '4.14', '4.13', '4.12', '4.11', '4.10', '4.09', '4.08', '4.06' ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout rincewind repository
+      uses: actions/checkout@v4
+
+    - name: Use OCaml ${{ matrix.ocaml-compiler }}
+      uses: ocaml/setup-ocaml@v2
+      with:
+        ocaml-compiler: ${{ format('{0}{1}', matrix.ocaml-compiler, '.x') }}
+
+    - run: opam install . --deps-only --with-test
+    - run: opam exec -- dune build
+    - run: opam exec -- dune runtest
+
+    - run: mkdir -p _build/final
+    - run: mv _build/default/bin/rincewind.exe _build/final/rincewind_${{ env[runner.os] }}${{ matrix.ocaml-compiler }}-${{ env.version }}.exe
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: rincewind-${{ matrix.os }}-${{ matrix.ocaml-compiler }}
+        path: _build/final
+
+  merge:
+    #if: ${{ always() }}
+    needs: [build-mac, build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download All Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: rincewind-all
+        pattern: rincewind-*
+        merge-multiple: true
+
+    - name: Upload all
+      uses: actions/upload-artifact@v4
+      with:
+        name: rincewind-all
+        path: ./
