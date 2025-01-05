@@ -1,4 +1,3 @@
-(test
-    (name TestRincewind)
-    (libraries rincewind.lib alcotest)
+(cram
+  (deps %{bin:rincewind.exe})
 )
