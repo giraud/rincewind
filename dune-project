@@ -1,4 +1,4 @@
-(lang dune 3.17)
+(lang dune 3.10)
 (name rincewind)
 
 (authors "Hervé Giraud <giraud.contact@yahoo.fr>")
