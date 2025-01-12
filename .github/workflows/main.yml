@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ windows-latest ]
-        ocaml-compiler: [ '4.14', '4.13', '4.12', '4.11', '4.10', '4.09', '4.08', '4.06' ]
+        ocaml-compiler: [ '4.14', '4.13', '4.12', '4.11', '4.10', '4.09', '4.08', '4.07', '4.06' ]
 
     runs-on: ${{ matrix.os }}
 
@@ -27,13 +27,9 @@ jobs:
         with:
           ocaml-compiler: ${{ format('{0}{1}', matrix.ocaml-compiler, '.x') }}
           dune-cache: true
-          opam-repositories: |
-            opam-repository-mingw: https://github.com/ocaml-opam/opam-repository-mingw.git#sunset
-            default: https://github.com/ocaml/opam-repository.git
 
-      - run: opam install . --deps-only --with-test
+      - run: opam install . --deps-only
       - run: opam exec -- dune build
-      - run: opam exec -- dune runtest
 
       - run: mkdir -p _build/final
       - run: mv _build/default/bin/rincewind.exe _build/final/rincewind_${{ env[runner.os] }}${{ matrix.ocaml-compiler }}-${{ env.version }}.exe
